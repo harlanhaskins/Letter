@@ -32,6 +32,7 @@ executable Letter-exe
   build-depends:       base
                      , bytestring
                      , containers
+                     , optparse-applicative
                      , megaparsec
                      , Letter
   default-language:    Haskell2010
