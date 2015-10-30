@@ -1,0 +1,41 @@
+name:                Letter
+version:             0.1.0.0
+synopsis:            A LISPy language
+description:         Please see README.md
+homepage:            http://github.com/githubuser/Letter#readme
+license:             MIT
+license-file:        LICENSE
+author:              Harlan Haskins
+maintainer:          harlan@harlanhaskins.com
+copyright:           2015 Harlan Haskins
+category:            Language
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Letter.Core
+                     , Letter.Parser
+  other-extensions:    OverloadedStrings
+  build-depends:       base >= 4.7 && < 5
+                     , bytestring
+                     , containers
+                     , megaparsec
+  default-language:    Haskell2010
+
+executable Letter-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  other-extensions:    OverloadedStrings
+  build-depends:       base
+                     , bytestring
+                     , containers
+                     , megaparsec
+                     , Letter
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/harlanhaskins/Letter
