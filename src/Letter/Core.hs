@@ -80,7 +80,9 @@ reduce env n@(NExp _)                     = return n
 reduce (Env fs gs) (Do ((Let id e):exps)) = reduce (Env fs (M.insert id e gs)) (Do exps)
 reduce env (Do [])                        = return (NExp 0)
 reduce env (Do [exp])                     = reduce env exp
-reduce env (Do (exp:exps))                = reduce env (Do exps)
+reduce env (Do (exp:exps))                = do
+    _ <- reduce env exp
+    reduce env (Do exps)
 reduce env@(Env _ gs) (Var id)            = do
     let exp = M.lookup id gs
     reduce env (fromJust exp)
