@@ -14,7 +14,7 @@ import qualified Text.Megaparsec.Char as C
 import qualified Text.Megaparsec.Lexer as L
 
 space :: Parser ()
-space = L.space (void C.spaceChar) (L.skipLineComment "--") (L.skipBlockComment "{-" "-}")
+space = L.space (void C.spaceChar) (L.skipLineComment ";") (L.skipBlockComment "#|" "|#")
 
 symbol = L.symbol space
 
