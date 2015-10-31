@@ -37,14 +37,22 @@ exp = try nExp
   <|> try (parens (try expBody))
 
 expBody :: Parser Exp
-expBody = doExp
-      <|> funCall
+expBody = try doExp
+      <|> try letExp
+      <|> try funCall
 
 funCall :: Parser Exp
 funCall = do
     name <- lexeme identifier
     args <- expList
     return $ FunCall name args
+
+letExp :: Parser Exp
+letExp = do
+    symbol "let"
+    name <- lexeme identifier
+    e <- exp
+    return $ Let name e
 
 doExp :: Parser Exp
 doExp = Do <$> (symbol "do" *> expList)

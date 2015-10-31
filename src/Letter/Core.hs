@@ -22,8 +22,8 @@ data FunDef = UserFun [String] Exp
             | BuiltinFun (Env -> [Exp] -> IO Exp)
 
 instance Show FunDef where
-    show (UserFun m e) = "<UserFun>"
-    show (BuiltinFun f) = "<BuiltinFun>"
+    show (UserFun args e) = "UserFun " ++ show args ++ " " ++ show e
+    show (BuiltinFun f)   = "<BuiltinFun>"
 
 binaryFun :: (Int -> Int -> Int) -> FunDef
 binaryFun f = BuiltinFun $ \env es -> do
