@@ -26,9 +26,9 @@ instance Show FunDef where
     show (BuiltinFun f)   = "<BuiltinFun>"
 
 binaryFun :: (Int -> Int -> Int) -> FunDef
-binaryFun f = BuiltinFun $ \env es -> do
-    a <- eval env (head es)
-    b <- eval env $ (head . tail) es
+binaryFun f = BuiltinFun $ \env (e1:e2:_) -> do
+    a <- eval env e1
+    b <- eval env e2
     return (NExp $ f a b)
 
 ifDef :: (Env -> [Exp] -> IO Exp)
