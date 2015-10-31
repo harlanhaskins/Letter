@@ -29,5 +29,5 @@ main = do
         case p of
             (Left err) -> print err
             (Right (env, exps)) -> do
-                val <- eval env (Do exps)
-                print val
+                _ <- eval env (Do exps)
+                return ()

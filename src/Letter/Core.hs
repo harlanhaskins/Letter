@@ -87,7 +87,13 @@ reduce !env (Do (!exp:(!exps)))                 = do
     reduce env (Do exps)
 reduce !env@(Env _ !gs) (Var !id)               = do
     let exp = M.lookup id gs
-    reduce env (fromJust exp)
+    case exp of
+        Nothing -> letterErr $ "Use of undeclared identifier \"" ++ id ++ "\""
+        (Just e) -> reduce env e
 reduce !env@(Env fs _) !(FunCall id args)       = do
     let exp = M.lookup id fs
-    call env (fromJust exp) args
+    case exp of
+        Nothing -> letterErr $ "Use of undeclared function \"" ++ id ++ "\""
+        (Just e) -> call env e args
+
+letterErr = error . ("Error: " ++)
