@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module Letter.Core where
 
 import qualified Data.Map as M
@@ -76,16 +78,16 @@ eval env e        = do
     eval env exp
 
 reduce :: Env -> Exp -> IO Exp
-reduce env n@(NExp _)                     = return n
-reduce (Env fs gs) (Do ((Let id e):exps)) = reduce (Env fs (M.insert id e gs)) (Do exps)
-reduce env (Do [])                        = return (NExp 0)
-reduce env (Do [exp])                     = reduce env exp
-reduce env (Do (exp:exps))                = do
+reduce !env !n@(NExp _)                         = return n
+reduce (Env !fs !gs) (Do ((Let id !e):(!exps))) = reduce (Env fs (M.insert id e gs)) (Do exps)
+reduce !env (Do [])                             = return (NExp 0)
+reduce !env (Do [!exp])                         = reduce env exp
+reduce !env (Do (!exp:(!exps)))                 = do
     _ <- reduce env exp
     reduce env (Do exps)
-reduce env@(Env _ gs) (Var id)            = do
+reduce !env@(Env _ !gs) (Var !id)               = do
     let exp = M.lookup id gs
     reduce env (fromJust exp)
-reduce env@(Env fs _) (FunCall id args)    = do
+reduce !env@(Env fs _) !(FunCall id args)       = do
     let exp = M.lookup id fs
     call env (fromJust exp) args
