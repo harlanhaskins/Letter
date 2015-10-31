@@ -19,26 +19,38 @@ data Env = Env
          } deriving Show
 
 data FunDef = UserFun [String] Exp
-            | BuiltinFun (Env -> [Exp] -> IO Exp)
+            | BuiltinFun Int (Env -> [Exp] -> IO Exp)
 
 instance Show FunDef where
-    show (UserFun args e) = "UserFun " ++ show args ++ " " ++ show e
-    show (BuiltinFun f)   = "<BuiltinFun>"
+    show (UserFun args e) = "<UserFun:" ++ show (length args) ++ ">"
+    show (BuiltinFun a f)   = "<BuiltinFun:" ++ show a ++ ">"
 
 binaryFun :: (Int -> Int -> Int) -> FunDef
-binaryFun f = BuiltinFun $ \env (e1:e2:_) -> do
+binaryFun f = BuiltinFun 2 $ \env (e1:e2:_) -> do
     a <- eval env e1
     b <- eval env e2
     return (NExp $ f a b)
 
-ifDef :: (Env -> [Exp] -> IO Exp)
+checkExpectDef :: Env -> [Exp] -> IO Exp
+checkExpectDef env (e1:e2:_) = do
+    a <- eval env e1
+    b <- eval env e2
+    if a == b
+    then do
+        putStrLn $ "check-expect passed."
+        return $ NExp 0
+    else do
+        putStrLn $ "check-expect failed. Expected \"" ++ show a ++ "\", got \"" ++ show b ++ "\""
+        return $ NExp 0
+
+ifDef :: Env -> [Exp] -> IO Exp
 ifDef env (e1:e2:e3:_) = do
     a <- eval env e1
     if a /= 0
     then reduce env e2
     else reduce env e3
 
-printDef :: (Env -> [Exp] -> IO Exp)
+printDef :: Env -> [Exp] -> IO Exp
 printDef env (e:_) = do
     val <- eval env e
     print val
@@ -57,19 +69,32 @@ builtinFuns = M.fromList
               , ("<", binaryFun (boolify (<)))
               , (">=", binaryFun (boolify (>=)))
               , ("<=", binaryFun (boolify (<=)))
+              , ("/=", binaryFun (boolify (/=)))
+              , ("not", UserFun ["x"] (FunCall "if" [Var "x", NExp 0, NExp 1]))
               , ("mod", binaryFun mod)
-              , ("if", BuiltinFun ifDef)
-              , ("print", BuiltinFun printDef)
+              , ("if", BuiltinFun 3 ifDef)
+              , ("print", BuiltinFun 1 printDef)
+              , ("check-expect", BuiltinFun 2 checkExpectDef)
               ]
 
 emptyEnv = Env mempty mempty
 initEnv = Env builtinFuns mempty
 
-call env (BuiltinFun f) args = f env args
-call env@(Env fs gs) (UserFun ns e) args = do
-    vals <- mapM (reduce env) args
-    let formals = M.fromList (zip ns vals)
-    reduce (Env fs (M.union formals gs)) e
+call :: Env -> String -> FunDef -> [Exp] -> IO Exp
+call env n (BuiltinFun arity f) args
+    | (length args) == arity = f env args
+    | otherwise = argsError n arity (length args)
+call env@(Env fs gs) n (UserFun ns e) args
+    | length args == length ns = do
+        vals <- mapM (reduce env) args
+        let formals = M.fromList (zip ns vals)
+        reduce (Env fs (M.union formals gs)) e
+    | otherwise = argsError n (length ns) (length args)
+
+argsError id f a = letterErr $
+                   "Invalid number of arguments to function \""
+                   ++ id ++ "\". Expected " ++ show f
+                   ++ ", got " ++ show a ++ "."
 
 eval :: Env -> Exp -> IO Int
 eval env (NExp n) = return n
@@ -94,6 +119,7 @@ reduce !env@(Env fs _) !(FunCall id args)       = do
     let exp = M.lookup id fs
     case exp of
         Nothing -> letterErr $ "Use of undeclared function \"" ++ id ++ "\""
-        (Just e) -> call env e args
+        (Just e) -> call env id e args
 
+letterErr :: String -> a
 letterErr = error . ("Error: " ++)
