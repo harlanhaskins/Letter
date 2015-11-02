@@ -9,9 +9,7 @@ There are no types; Letter only has machine integers.
 (def fact (n)
     (if (= n 0)
         1
-        (* n (fact (- n 1)))
-    )
-)
+        (* n (fact (- n 1)))))
 
 (fact 8)
 ```
