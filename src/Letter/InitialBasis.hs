@@ -39,8 +39,25 @@ printDef env (e:_) = do
     print val
     return (NExp val)
 
+toBool 0 = False
+toBool 1 = True
+
 boolify :: (Int -> Int -> Bool) -> (Int -> Int -> Int)
 boolify f = \a b -> if f a b then 1 else 0
+
+orDef :: Env -> [Exp] -> IO Exp
+orDef env (e1:e2:_) = do
+    a <- eval env e1
+    if a /= 0
+    then return (NExp a)
+    else reduce env e2
+
+andDef :: Env -> [Exp] -> IO Exp
+andDef env (e1:e2:_) = do
+    a <- eval env e1
+    if a == 0
+    then return (NExp a)
+    else reduce env e2
 
 builtinDefs :: [(String, FunDef)]
 builtinDefs = [ ("+", binaryFun (+))
@@ -53,6 +70,8 @@ builtinDefs = [ ("+", binaryFun (+))
               , (">=", binaryFun (boolify (>=)))
               , ("<=", binaryFun (boolify (<=)))
               , ("/=", binaryFun (boolify (/=)))
+              , ("or", BuiltinFun 2 orDef)
+              , ("and", BuiltinFun 2 andDef)
               , ("mod", binaryFun mod)
               , ("if", BuiltinFun 3 ifDef)
               , ("print", BuiltinFun 1 printDef)
