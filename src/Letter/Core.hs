@@ -25,61 +25,6 @@ instance Show FunDef where
     show (UserFun args e) = "<UserFun:" ++ show (length args) ++ ">"
     show (BuiltinFun a f)   = "<BuiltinFun:" ++ show a ++ ">"
 
-binaryFun :: (Int -> Int -> Int) -> FunDef
-binaryFun f = BuiltinFun 2 $ \env (e1:e2:_) -> do
-    a <- eval env e1
-    b <- eval env e2
-    return (NExp $ f a b)
-
-checkExpectDef :: Env -> [Exp] -> IO Exp
-checkExpectDef env (e1:e2:_) = do
-    a <- eval env e1
-    b <- eval env e2
-    if a == b
-    then do
-        putStrLn $ "check-expect passed."
-        return $ NExp 0
-    else do
-        putStrLn $ "check-expect failed. Expected \"" ++ show a ++ "\", got \"" ++ show b ++ "\""
-        return $ NExp 0
-
-ifDef :: Env -> [Exp] -> IO Exp
-ifDef env (e1:e2:e3:_) = do
-    a <- eval env e1
-    if a /= 0
-    then reduce env e2
-    else reduce env e3
-
-printDef :: Env -> [Exp] -> IO Exp
-printDef env (e:_) = do
-    val <- eval env e
-    print val
-    return (NExp val)
-
-boolify :: (Int -> Int -> Bool) -> (Int -> Int -> Int)
-boolify f = \a b -> if f a b then 1 else 0
-
-builtinFuns = M.fromList
-              [ ("+", binaryFun (+))
-              , ("*", binaryFun (*))
-              , ("-", binaryFun (-))
-              , ("/", binaryFun div)
-              , ("=", binaryFun (boolify (==)))
-              , (">", binaryFun (boolify (>)))
-              , ("<", binaryFun (boolify (<)))
-              , (">=", binaryFun (boolify (>=)))
-              , ("<=", binaryFun (boolify (<=)))
-              , ("/=", binaryFun (boolify (/=)))
-              , ("not", UserFun ["x"] (FunCall "if" [Var "x", NExp 0, NExp 1]))
-              , ("mod", binaryFun mod)
-              , ("if", BuiltinFun 3 ifDef)
-              , ("print", BuiltinFun 1 printDef)
-              , ("check-expect", BuiltinFun 2 checkExpectDef)
-              ]
-
-emptyEnv = Env mempty mempty
-initEnv = Env builtinFuns mempty
-
 call :: Env -> String -> FunDef -> [Exp] -> IO Exp
 call env n (BuiltinFun arity f) args
     | (length args) == arity = f env args
@@ -98,9 +43,7 @@ argsError id f a = letterErr $
 
 eval :: Env -> Exp -> IO Int
 eval env (NExp n) = return n
-eval env e        = do
-    exp <- reduce env e
-    eval env exp
+eval env e        = reduce env e >>= eval env
 
 reduce :: Env -> Exp -> IO Exp
 reduce !env !n@(NExp _)                         = return n

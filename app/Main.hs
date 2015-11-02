@@ -3,6 +3,8 @@ module Main where
 import Prelude hiding (exp)
 import Letter.Core
 import Letter.Parser
+import Letter.InitialBasis
+import qualified Data.Map as M
 import Text.Megaparsec.ByteString
 import Options.Applicative
 import System.Environment
@@ -20,6 +22,9 @@ config = Config
         <> short 'd'
         <> help "Dump the AST instead of evaluating" )
 
+fillEnv :: [(String, FunDef)] -> Env -> Env
+fillEnv fs (Env fs' gs) = (Env (M.union (M.fromList fs) fs') gs)
+
 main :: IO ()
 main = do
     (Config filename dump) <- execParser (info config fullDesc)
@@ -28,6 +33,7 @@ main = do
     else do
         case p of
             (Left err) -> print err
-            (Right (env, exps)) -> do
+            (Right (defs, exps)) -> do
+                let env = fillEnv defs initEnv
                 _ <- eval env (Do exps)
                 return ()

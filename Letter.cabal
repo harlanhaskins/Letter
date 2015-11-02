@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Letter.Core
                      , Letter.Parser
+                     , Letter.InitialBasis
   other-extensions:    OverloadedStrings
                      , BangPatterns
   build-depends:       base >= 4.7 && < 5

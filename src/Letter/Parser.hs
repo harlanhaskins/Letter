@@ -72,19 +72,13 @@ funDef = parens $ do
     return $ (name, UserFun vars e)
 
 expList :: Parser [Exp]
-expList = exp `MPC.sepBy` space
+expList = (exp `MPC.sepBy` space) <* space
 
 varList :: Parser [String]
-varList = identifier `MPC.sepBy` space
+varList = (identifier `MPC.sepBy` space) <* space
 
-fillEnv :: [(String, FunDef)] -> Env -> Env
-fillEnv fs (Env fs' gs) = (Env (M.union (M.fromList fs) fs') gs)
-
-bootstrap :: ([(String, FunDef)], [Exp]) -> (Env, [Exp])
-bootstrap rs = (fillEnv (fst rs) initEnv, snd rs)
-
-parseFile :: Parser (Env, [Exp])
+parseFile :: Parser ([(String, FunDef)], [Exp])
 parseFile = do
     lines <- many line <* eof
     let results = partitionEithers lines
-    return $ bootstrap results
+    return results
