@@ -1,0 +1,23 @@
+* The only type in Letter is machine integer.
+* All expressions reduce to a numeric value.
+* A `def` statement:
+    * Declares an n-ary function with bindings to formal parameters.
+    * Must have one (and only one) expression inside.
+    * Is only valid at file scope.
+* A `do` statement:
+    * Wraps multiple expressions into one expression.
+    * Allows side-effects through the `print` statement.
+    * Evaluates to the result of the last expression.
+    * Opens a new context for local variables. These variables are
+      destroyed when the do statement is left.
+* A `let` statement:
+    * Yields the value from the expression it binds.
+    * Adds a binding to the enclosing environment.
+* A `print` statement:
+    * Evaluates its argument and prints it to `stdout`.
+    * Yields the value from the expression it prints.
+* A function call:
+    * Looks up the function definition from the environment, throwing
+      an error if it's not found.
+    * Adds bindings in the environment in the order specified by the
+      formal parameters of the definition.
