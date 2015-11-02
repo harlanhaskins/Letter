@@ -29,11 +29,12 @@ main :: IO ()
 main = do
     (Config filename dump) <- execParser (info config fullDesc)
     p <- parseFromFile parseFile filename
-    if dump then print p
-    else do
-        case p of
-            (Left err) -> print err
-            (Right (defs, exps)) -> do
-                let env = fillEnv defs initEnv
+    case p of
+        (Left err) -> print err
+        (Right (defs, exps)) -> do
+            let env = fillEnv defs initEnv
+            if dump
+            then print env
+            else do
                 _ <- eval env (Do exps)
                 return ()
