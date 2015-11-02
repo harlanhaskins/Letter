@@ -80,5 +80,4 @@ varList = (identifier `MPC.sepBy` space) <* space
 parseFile :: Parser ([(String, FunDef)], [Exp])
 parseFile = do
     lines <- many line <* eof
-    let results = partitionEithers lines
-    return results
+    return $ partitionEithers lines

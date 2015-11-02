@@ -1,0 +1,12 @@
+exp        ::= (<exp-body>)             ; A parenthesized expression
+             | <num>
+             | <id>
+exp-body   ::= let <id> <exp>           ; A 'let' expression
+             | do <exp>+                ; A 'do' expression
+             | <id> <exp>*              ; A function call
+fun-def    ::= (def <id> (<id>*) <exp>)
+num        ::= 0-9
+alpha      ::= a-z | A-Z
+id         ::= <id-char>+
+id-char    ::= ? | ^ | * | + | = | <alpha>
+             | < | > | - | _ | <num>
