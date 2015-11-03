@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE BangPatterns    #-}
 
 module Letter.InitialBasis where
 
@@ -11,7 +12,7 @@ import qualified Data.ByteString as BS
 import qualified Data.Map as M
 
 binaryFun :: (Int -> Int -> Int) -> FunDef
-binaryFun f = BuiltinFun 2 $ \env (e1:e2:_) -> do
+binaryFun f = BuiltinFun (Just 2) $ \env (e1:e2:_) -> do
     a <- eval env e1
     b <- eval env e2
     return (NExp $ f a b)
@@ -25,6 +26,13 @@ checkExpectDef env (e1:e2:_) = do
     else do
         putStrLn $ "check-expect failed. Expected \"" ++ show a ++ "\", got \"" ++ show b ++ "\""
         return $ NExp 0
+
+doDef :: Env -> [Exp] -> IO Exp
+doDef env [] = return $ NExp 0
+doDef env@(Env fs gs) ((Let !id !e):es) = doDef (Env fs (M.insert id e gs)) es
+doDef env (e:es) = do
+    _ <- reduce env e
+    doDef env es
 
 ifDef :: Env -> [Exp] -> IO Exp
 ifDef env (e1:e2:e3:_) = do
@@ -70,11 +78,12 @@ builtinDefs = [ ("+", binaryFun (+))
               , (">=", binaryFun (boolify (>=)))
               , ("<=", binaryFun (boolify (<=)))
               , ("/=", binaryFun (boolify (/=)))
-              , ("or", BuiltinFun 2 orDef)
-              , ("and", BuiltinFun 2 andDef)
+              , ("or", BuiltinFun (Just 2) orDef)
+              , ("and", BuiltinFun (Just 2) andDef)
               , ("mod", binaryFun mod)
-              , ("if", BuiltinFun 3 ifDef)
-              , ("print", BuiltinFun 1 printDef)
+              , ("if", BuiltinFun (Just 3) ifDef)
+              , ("print", BuiltinFun (Just 1) printDef)
+              , ("do", BuiltinFun Nothing doDef)
               ]
 
 builtinFuns :: M.Map String FunDef
