@@ -28,9 +28,10 @@ checkExpectDef env (e1:e2:_) = do
         return $ NExp 0
 
 doDef :: Env -> [Exp] -> IO Exp
-doDef env [] = return $ NExp 0
-doDef env@(Env fs gs) ((Let !id !e):es) = doDef (Env fs (M.insert id e gs)) es
-doDef env (e:es) = do
+doDef env []   = return $ NExp 0
+doDef env [!e] = reduce env e
+doDef env@(Env fs gs) ((Let !id !e):(!es)) = doDef (Env fs (M.insert id e gs)) es
+doDef env (!e:(!es)) = do
     _ <- reduce env e
     doDef env es
 

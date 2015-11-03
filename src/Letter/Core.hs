@@ -6,10 +6,10 @@ import qualified Data.Map as M
 import Control.Applicative ((<|>))
 import Data.Maybe
 
-data Exp = NExp Int
-         | Var String
-         | Let String Exp
-         | FunCall String [Exp]
+data Exp = NExp !Int
+         | Var !String
+         | Let !String !Exp
+         | FunCall !String ![Exp]
          deriving Show
 
 data Env = Env
@@ -17,7 +17,7 @@ data Env = Env
          , globals   :: M.Map String Exp
          } deriving Show
 
-data FunDef = UserFun [String] Exp
+data FunDef = UserFun ![String] !Exp
             | BuiltinFun (Maybe Int) (Env -> [Exp] -> IO Exp)
 
 instance Show FunDef where
@@ -31,7 +31,7 @@ call env n (BuiltinFun Nothing f) !args = f env args
 call env n (BuiltinFun (Just arity) f) !args
     | (length args) == arity = f env args
     | otherwise = argsError n arity (length args)
-call env@(Env fs gs) n (UserFun ns !e) !args
+call env@(Env fs gs) n (UserFun !ns !e) !args
     | length args == length ns = do
         vals <- mapM (reduce env) args
         let formals = M.fromList (zip ns vals)
