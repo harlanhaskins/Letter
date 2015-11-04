@@ -29,8 +29,8 @@ checkExpectDef env (e1:e2:_) = do
 
 doDef :: Env -> [Exp] -> IO Exp
 doDef env []   = return $ NExp 0
-doDef env [!e] = reduce env e
 doDef env@(Env fs gs) ((Let !id !e):(!es)) = doDef (Env fs (M.insert id e gs)) es
+doDef env [!e] = reduce env e
 doDef env (!e:(!es)) = do
     _ <- reduce env e
     doDef env es
@@ -49,7 +49,7 @@ printDef env (e:_) = do
     return (NExp val)
 
 toBool 0 = False
-toBool 1 = True
+toBool _ = True
 
 boolify :: (Int -> Int -> Bool) -> (Int -> Int -> Int)
 boolify f = \a b -> if f a b then 1 else 0
