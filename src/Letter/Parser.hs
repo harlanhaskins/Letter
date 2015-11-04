@@ -5,13 +5,19 @@ import Letter.Core
 import Control.Monad (void)
 import Control.Applicative
 import Data.Either
-import Text.Megaparsec (try, (<?>))
+import Text.Megaparsec hiding (space)
 import Text.Megaparsec.ByteString
 import Text.Megaparsec.Combinator as MPC
 import Text.Megaparsec.Prim
 import qualified Data.Map as M
 import qualified Text.Megaparsec.Char as C
 import qualified Text.Megaparsec.Lexer as L
+
+infixl <||>
+p <||> q = (try p) <|> (try q)
+
+choice' :: [Parser a] -> Parser a
+choice' = choice . map try
 
 space :: Parser ()
 space = L.space (void C.spaceChar) (L.skipLineComment ";") (L.skipBlockComment "#|" "|#")
@@ -22,23 +28,23 @@ parens = MPC.between (symbol "(") (symbol ")")
 
 lexeme        = L.lexeme space
 integer       = lexeme L.integer
-signedInteger = L.signed space L.integer
+signedInteger = L.signed space integer
 
-identifierChar = (try C.alphaNumChar <|> try (C.oneOf "*+-/_'=^?!<>"))
+identifierChar = (C.alphaNumChar <||> (C.oneOf "*+-/_'=^?!<>"))
 identifier = some identifierChar
 
 line :: Parser (Either (String, FunDef) Exp)
-line = try ((Left <$> funDef) <?> "function definition")
-   <|> try ((Right <$> exp) <?> "top-level declaration")
+line = ((Left <$> funDef) <?> "function definition")
+  <||> ((Right <$> exp) <?> "top-level declaration")
 
 exp :: Parser Exp
-exp = try nExp
-  <|> try varExp
-  <|> try (parens (try expBody))
+exp = (nExp <?> "numerical expression")
+ <||> (varExp <?> "variable reference")
+ <||> parens expBody
 
 expBody :: Parser Exp
-expBody = try letExp
-      <|> try funCall
+expBody = (letExp <?> "let expression")
+     <||> (funCall <?> "function call")
 
 funCall :: Parser Exp
 funCall = do
