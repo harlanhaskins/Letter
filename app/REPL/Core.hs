@@ -3,15 +3,19 @@ module REPL.Core where
 import Letter.Core
 import Letter.InitialBasis
 import Letter.Parser
-import Text.Megaparsec
+import Text.Megaparsec (parse)
 import System.Environment
+import System.Exit
 import System.IO
+import System.IO.Error
 import Control.Monad.Trans.Except
+import Control.Monad
+import Control.Exception
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as BS
 
-run :: IO ()
-run = run' initEnv
+runRepl :: IO ()
+runRepl = run' initEnv
 
 handleDef env@(Env fs gs) (Left (id, f)) = do
     let env' = Env (M.insert id f fs) gs
@@ -35,8 +39,11 @@ getDef :: String -> IO (Either (String, FunDef) Exp)
 getDef s = do
     x <- putStr (if s == "" then "Letter > " else "         ")
     hFlush stdout
-    exp <- getLine
-    let newExp = s ++ exp
-    case parse line "REPL" (BS.pack newExp) of
-        (Left _) -> getDef newExp
-        (Right exp) -> return exp
+    exp <- tryJust (guard . isEOFError) getLine
+    case exp of
+        (Left _) -> exitSuccess
+        (Right e) -> do
+            let newExp = s ++ e
+            case parse line "REPL" (BS.pack newExp) of
+                (Left _) -> getDef newExp
+                (Right exp) -> return exp

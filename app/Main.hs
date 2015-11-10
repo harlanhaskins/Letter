@@ -45,4 +45,4 @@ main = do
             case p of
                 (Left err) -> print err
                 (Right (defs, exps)) -> evaluate dump defs exps
-        Nothing -> run
+        Nothing -> runRepl
