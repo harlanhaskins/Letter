@@ -3,7 +3,7 @@
 Letter is a simple LISP-like programming language that supports functions,
 dynamic scope, and local variables.
 
-There are no types; Letter only has machine integers.
+There are no types; Letter only has integers.
 
 ```scheme
 (def fact (n)
