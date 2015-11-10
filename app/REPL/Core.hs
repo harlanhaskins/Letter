@@ -17,10 +17,10 @@ handleDef env@(Env fs gs) (Left (id, f)) = do
     putStrLn $ id ++ ": " ++ (show f)
     run' env'
 handleDef env@(Env fs gs) (Right (Let id exp)) = run' $ Env fs (M.insert id exp gs)
-handleDef env (Right exp) = do
+handleDef env@(Env fs gs) (Right exp) = do
     val <- eval env exp
     print val
-    run' env
+    run' $ Env fs (M.insert "it" (NExp val) gs)
 
 run' :: Env -> IO ()
 run' env = getDef "" >>= handleDef env
