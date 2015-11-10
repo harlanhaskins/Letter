@@ -9,6 +9,8 @@ import Text.Megaparsec
 import Data.FileEmbed (embedFile)
 import Data.Either
 import Control.Error
+import Control.Monad.IO.Class
+import Control.Monad.Trans
 import qualified Data.ByteString as BS
 import qualified Data.Map as M
 
@@ -41,11 +43,14 @@ ifDef env (e1:e2:e3:_) = do
     then reduce env e2
     else reduce env e3
 
--- printDef :: Env -> [Exp] -> LetterResult Exp
--- printDef env (e:_) = do
---     val <- runExceptT $ eval env e
---     print val
---     return $ NExp val
+printDef :: Env -> [Exp] -> LetterResult Exp
+printDef env (e:_) = do
+    res <- lift . runExceptT $ eval env e
+    case res of
+        (Right val) -> do
+            (lift . print) val
+            return $ NExp val
+        (Left e)    -> throwE e
 
 toBool 0 = False
 toBool _ = True
@@ -82,7 +87,7 @@ builtinDefs = [ ("+", binaryFun (+))
               , ("and", BuiltinFun (Just 2) andDef)
               , ("mod", binaryFun mod)
               , ("if", BuiltinFun (Just 3) ifDef)
-              -- , ("print", BuiltinFun (Just 1) printDef)
+              , ("print", BuiltinFun (Just 1) printDef)
               , ("do", BuiltinFun Nothing doDef)
               ]
 
