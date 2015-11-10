@@ -34,6 +34,7 @@ signedInteger = L.signed space integer
 
 identifierChar = (C.alphaNumChar <||> (C.oneOf "*+-/_'=^?!<>"))
 identifier = some identifierChar
+filename = some (identifierChar <||> C.char '.')
 
 line :: Parser Line
 line = ((Left <$> funDef) <?> "function definition")

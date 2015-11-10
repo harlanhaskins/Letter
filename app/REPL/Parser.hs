@@ -7,17 +7,16 @@ import Control.Monad (void)
 
 data Command = Eval Line
              | Dump Line
+             | Import String
              | Quit
              deriving Show
 
-commandTuples = [ ("d", Dump)
-                , ("dump", Dump)
-                ]
+importCmd = Import <$> ((symbol ":i" <||> symbol ":import") >> filename)
 
-fromCommandTuple (s, f) = symbol (':':s) *> (f <$> line)
+dump = (symbol ":d" >> (Dump <$> line))
+  <||> (symbol ":dump" >> (Dump <$> line))
 
-commands = choice' $ map fromCommandTuple commandTuples
-
-command = commands
-     <||> ((\_ -> Quit) <$> symbol ":q")
+command = ((\_ -> Quit) <$> symbol ":q")
+     <||> importCmd
+     <||> dump
      <||> (Eval <$> line)

@@ -13,6 +13,7 @@ import Control.Monad.Trans
 type LetterResult = ExceptT String IO
 
 addGlobals (Env fs gs) vars = Env fs (M.union (M.fromList vars) gs)
+addFuns (Env fs gs) funs = Env (M.union (M.fromList funs) fs) gs
 addFun     (Env fs gs) id f = Env (M.insert id f fs) gs
 addGlobal  (Env fs gs) id e = Env fs (M.insert id e gs)
 findGlobal (Env _ gs) id    = M.lookup id gs

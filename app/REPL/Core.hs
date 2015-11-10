@@ -5,6 +5,7 @@ import Letter.InitialBasis
 import Letter.Parser
 import REPL.Parser
 import Text.Megaparsec (parse)
+import Text.Megaparsec.ByteString
 import System.Environment
 import System.Exit
 import System.IO
@@ -19,7 +20,6 @@ runRepl :: IO ()
 runRepl = run' initEnv
 
 quit = putStrLn "Leaving Letter." >> exitSuccess
-
 
 handleEval env@(Env fs gs) (Left (id, f)) = do
     let env' = Env (M.insert id f fs) gs
@@ -54,9 +54,19 @@ handleDump env@(Env fs gs) (Right (Var id)) = do
             return env
 handleDump env (Right e) = putStrLn (show e) >> return env
 
-handleCmd env (Eval e) = handleEval env e
-handleCmd env (Dump e) = handleDump env e
-handleCmd env Quit     = quit
+handleImport env id = do
+    p <- parseFromFile parseFile id
+    case p of
+        Left _ -> do
+            putStrLn $ "Failed to import \"" ++ id ++ "\""
+            return env
+        Right (funs, _) -> do
+            return $ addFuns env funs
+
+handleCmd env (Eval e)    = handleEval env e
+handleCmd env (Dump e)    = handleDump env e
+handleCmd env (Import id) = handleImport env id
+handleCmd env Quit        = quit
 
 run' :: Env -> IO ()
 run' env = do
