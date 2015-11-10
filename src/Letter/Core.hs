@@ -18,7 +18,7 @@ addGlobal  (Env fs gs) id e = Env fs (M.insert id e gs)
 findGlobal (Env _ gs) id    = M.lookup id gs
 findFun    (Env fs _) id    = M.lookup id fs
 
-data Exp = NExp !Int
+data Exp = NExp !Integer
          | Var !String
          | Let !String !Exp
          | FunCall !String ![Exp]
@@ -56,7 +56,7 @@ argsError id f a = throwE $
                    ++ id ++ "\". Expected " ++ show f
                    ++ ", got " ++ show a ++ "."
 
-eval :: Env -> Exp -> LetterResult Int
+eval :: Env -> Exp -> LetterResult Integer
 eval _   (NExp n) = return n
 eval env e        = reduce env e >>= eval env
 

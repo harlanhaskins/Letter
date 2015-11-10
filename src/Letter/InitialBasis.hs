@@ -14,7 +14,7 @@ import Control.Monad.Trans
 import qualified Data.ByteString as BS
 import qualified Data.Map as M
 
-binaryFun :: (Int -> Int -> Int) -> FunDef
+binaryFun :: (Integer -> Integer -> Integer) -> FunDef
 binaryFun f = BuiltinFun (Just 2) $ \env (e1:e2:_) -> do
     a <- eval env e1
     b <- eval env e2
@@ -53,7 +53,7 @@ printDef env (e:_) = do
 toBool 0 = False
 toBool _ = True
 
-boolify :: (Int -> Int -> Bool) -> (Int -> Int -> Int)
+boolify :: (Integer -> Integer -> Bool) -> (Integer -> Integer -> Integer)
 boolify f = \a b -> if f a b then 1 else 0
 
 orDef :: Env -> [Exp] -> LetterResult Exp

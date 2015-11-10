@@ -63,7 +63,7 @@ varExp :: Parser Exp
 varExp = Var <$> lexeme identifier
 
 nExp :: Parser Exp
-nExp = NExp . fromIntegral <$> signedInteger
+nExp = NExp <$> signedInteger
 
 funDef :: Parser (String, FunDef)
 funDef = parens $ do
