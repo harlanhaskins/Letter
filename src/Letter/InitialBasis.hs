@@ -8,6 +8,7 @@ import Letter.Parser
 import Text.Megaparsec
 import Data.FileEmbed (embedFile)
 import Data.Either
+import Control.Error
 import qualified Data.ByteString as BS
 import qualified Data.Map as M
 
@@ -17,17 +18,15 @@ binaryFun f = BuiltinFun (Just 2) $ \env (e1:e2:_) -> do
     b <- eval env e2
     return (NExp $ f a b)
 
-checkExpectDef :: Env -> [Exp] -> IO Exp
+checkExpectDef :: Env -> [Exp] -> LetterResult Exp
 checkExpectDef env (e1:e2:_) = do
     a <- eval env e1
     b <- eval env e2
     if a == b
     then return $ NExp 0
-    else do
-        putStrLn $ "check-expect failed. Expected \"" ++ show a ++ "\", got \"" ++ show b ++ "\""
-        return $ NExp 0
+    else throwE $ "check-expect failed. Expected \"" ++ show a ++ "\", got \"" ++ show b ++ "\""
 
-doDef :: Env -> [Exp] -> IO Exp
+doDef :: Env -> [Exp] -> LetterResult Exp
 doDef env []   = return $ NExp 0
 doDef env@(Env fs gs) ((Let !id !e):(!es)) = doDef (Env fs (M.insert id e gs)) es
 doDef env [!e] = reduce env e
@@ -35,18 +34,18 @@ doDef env (!e:(!es)) = do
     _ <- reduce env e
     doDef env es
 
-ifDef :: Env -> [Exp] -> IO Exp
+ifDef :: Env -> [Exp] -> LetterResult Exp
 ifDef env (e1:e2:e3:_) = do
     a <- eval env e1
     if a /= 0
     then reduce env e2
     else reduce env e3
 
-printDef :: Env -> [Exp] -> IO Exp
-printDef env (e:_) = do
-    val <- eval env e
-    print val
-    return (NExp val)
+-- printDef :: Env -> [Exp] -> LetterResult Exp
+-- printDef env (e:_) = do
+--     val <- runExceptT $ eval env e
+--     print val
+--     return $ NExp val
 
 toBool 0 = False
 toBool _ = True
@@ -54,14 +53,14 @@ toBool _ = True
 boolify :: (Int -> Int -> Bool) -> (Int -> Int -> Int)
 boolify f = \a b -> if f a b then 1 else 0
 
-orDef :: Env -> [Exp] -> IO Exp
+orDef :: Env -> [Exp] -> LetterResult Exp
 orDef env (e1:e2:_) = do
     a <- eval env e1
     if a /= 0
     then return (NExp a)
     else reduce env e2
 
-andDef :: Env -> [Exp] -> IO Exp
+andDef :: Env -> [Exp] -> LetterResult Exp
 andDef env (e1:e2:_) = do
     a <- eval env e1
     if a == 0
@@ -83,7 +82,7 @@ builtinDefs = [ ("+", binaryFun (+))
               , ("and", BuiltinFun (Just 2) andDef)
               , ("mod", binaryFun mod)
               , ("if", BuiltinFun (Just 3) ifDef)
-              , ("print", BuiltinFun (Just 1) printDef)
+              -- , ("print", BuiltinFun (Just 1) printDef)
               , ("do", BuiltinFun Nothing doDef)
               ]
 

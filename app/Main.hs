@@ -5,6 +5,8 @@ import Letter.Core
 import Letter.Parser
 import Letter.InitialBasis
 import REPL.Core
+import Control.Monad.Trans
+import Control.Monad.Trans.Except
 import qualified Data.Map as M
 import Text.Megaparsec.ByteString
 import Options.Applicative
@@ -26,10 +28,13 @@ config = Config
 fillEnv :: [(String, FunDef)] -> Env -> Env
 fillEnv fs (Env fs' gs) = (Env (M.union (M.fromList fs) fs') gs)
 
+evaluate :: Bool -> [(String, FunDef)] -> [Exp] -> IO ()
 evaluate True defs _ = print $ fillEnv defs initEnv
 evaluate False defs exps = do
-        _ <- eval (fillEnv defs initEnv) (FunCall "do" exps)
-        return ()
+    res <- runExceptT $ eval (fillEnv defs initEnv) (FunCall "do" exps)
+    case res of
+        (Left e) -> putStrLn $ "Letter: " ++ e
+        _        -> return ()
 
 main :: IO ()
 main = do

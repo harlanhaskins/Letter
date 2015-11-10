@@ -6,6 +6,7 @@ import Letter.Parser
 import Text.Megaparsec
 import System.Environment
 import System.IO
+import Control.Monad.Trans.Except
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as BS
 
@@ -18,9 +19,14 @@ handleDef env@(Env fs gs) (Left (id, f)) = do
     run' env'
 handleDef env@(Env fs gs) (Right (Let id exp)) = run' $ Env fs (M.insert id exp gs)
 handleDef env@(Env fs gs) (Right exp) = do
-    val <- eval env exp
-    print val
-    run' $ Env fs (M.insert "it" (NExp val) gs)
+    res <- runExceptT $ eval env exp
+    case res of
+        (Left e) -> do
+            putStrLn $ "Letter: " ++ e
+            run' env
+        (Right val) -> do
+            print val
+            run' $ Env fs (M.insert "it" (NExp val) gs)
 
 run' :: Env -> IO ()
 run' env = getDef "" >>= handleDef env
