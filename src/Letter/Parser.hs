@@ -13,6 +13,8 @@ import qualified Data.Map as M
 import qualified Text.Megaparsec.Char as C
 import qualified Text.Megaparsec.Lexer as L
 
+type Line = Either (String, FunDef) Exp
+
 infixl <||>
 p <||> q = (try p) <|> (try q)
 
@@ -33,7 +35,7 @@ signedInteger = L.signed space integer
 identifierChar = (C.alphaNumChar <||> (C.oneOf "*+-/_'=^?!<>"))
 identifier = some identifierChar
 
-line :: Parser (Either (String, FunDef) Exp)
+line :: Parser Line
 line = ((Left <$> funDef) <?> "function definition")
   <||> ((Right <$> exp) <?> "top-level declaration")
 
