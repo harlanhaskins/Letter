@@ -47,9 +47,7 @@ printDef :: Env -> [Exp] -> LetterResult Exp
 printDef env (e:_) = do
     res <- lift . runExceptT $ eval env e
     case res of
-        (Right val) -> do
-            (lift . print) val
-            return $ NExp val
+        (Right val) -> (lift $ print val) >> return (NExp val)
         (Left e)    -> throwE e
 
 toBool 0 = False
