@@ -5,10 +5,11 @@ module Letter.InitialBasis where
 
 import Letter.Core
 import Letter.Parser
-import Text.Megaparsec
+import Text.Megaparsec (parse)
 import Data.FileEmbed (embedFile)
 import Data.Either
 import Control.Error
+import Control.Exception
 import Control.Monad.IO.Class
 import Control.Monad.Trans
 import qualified Data.ByteString as BS
@@ -18,7 +19,14 @@ binaryFun :: (Integer -> Integer -> Integer) -> FunDef
 binaryFun f = BuiltinFun (Just 2) $ \env (e1:e2:_) -> do
     a <- eval env e1
     b <- eval env e2
-    return (NExp $ f a b)
+    return (NExp (f a b))
+
+divDef env (e1:e2:_) = do
+    a <- eval env e1
+    b <- eval env e2
+    if b == 0
+    then throwE "Cannot divide by zero."
+    else return (NExp (div a b))
 
 checkExpectDef :: Env -> [Exp] -> LetterResult Exp
 checkExpectDef env (e1:e2:_) = do
@@ -74,13 +82,13 @@ builtinDefs :: [(String, FunDef)]
 builtinDefs = [ ("+", binaryFun (+))
               , ("*", binaryFun (*))
               , ("-", binaryFun (-))
-              , ("/", binaryFun div)
               , ("=", binaryFun (boolify (==)))
               , (">", binaryFun (boolify (>)))
               , ("<", binaryFun (boolify (<)))
               , (">=", binaryFun (boolify (>=)))
               , ("<=", binaryFun (boolify (<=)))
               , ("/=", binaryFun (boolify (/=)))
+              , ("/", BuiltinFun (Just 2) divDef)
               , ("or", BuiltinFun (Just 2) orDef)
               , ("and", BuiltinFun (Just 2) andDef)
               , ("mod", binaryFun mod)
