@@ -97,9 +97,10 @@ builtinDefs = [ ("+", binaryFun (+))
               , ("do", BuiltinFun Nothing doDef)
               ]
 
-builtinFuns :: M.Map String FunDef
-builtinFuns = M.fromList $
-              builtinDefs
+builtinFuns = M.fromList builtinFunDefs
+
+builtinFunDefs :: [(String, FunDef)]
+builtinFunDefs = builtinDefs
            ++ case parsedBuiltins of
                 (Left err) -> error $ "Builtins were incorrect. " ++ show err
                 (Right (defs, _)) -> defs

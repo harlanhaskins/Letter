@@ -17,8 +17,15 @@ import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as BS
 
 runRepl :: IO ()
-runRepl = run' initEnv
+runRepl = putStr usageMsg >> run' initEnv
 
+usageMsg = unlines
+         [ "Letter v0.1 REPL. Type an expression followed by a newline."
+         , "Useful commands:"
+         , "\t:i, :import - Load the functions from a Letter file"
+         , "\t:d, :describe - Print the AST for an expression"
+         , "\t:q, :quit - Exit the REPL"
+         ]
 quit = putStrLn "Leaving Letter." >> exitSuccess
 
 handleEval env@(Env fs gs) (Left (id, f)) = do
@@ -39,20 +46,23 @@ handleEval env@(Env fs gs) (Right exp) = do
 showDef :: Show a => String -> a -> String
 showDef id e = id ++ " := " ++ show e
 
-handleDump env (Left (id, f)) = do
-    putStrLn $ showDef id f
+showFun id b@(BuiltinFun _ _) = showDef id b
+showFun id (UserFun formals exp) = id ++ " := UserFun " ++ show formals ++ " " ++ show exp
+
+handleDescribe env (Left (id, f)) = do
+    putStrLn $ showFun id f
     return env
-handleDump env@(Env fs gs) (Right (Var id)) = do
+handleDescribe env@(Env fs gs) (Right (Var id)) = do
     case M.lookup id fs of
         Nothing -> case M.lookup id gs of
-                        Nothing  -> return env
-                        Just e -> do
+                        Nothing  -> do
+                            putStrLn $ "Unbound reference: " ++ id
+                            return env
+                        Just e   -> do
                             putStrLn $ showDef id e
                             return env
-        Just e -> do
-            putStrLn $ showDef id e
-            return env
-handleDump env (Right e) = putStrLn (show e) >> return env
+        Just e -> handleDescribe env (Left (id, e))
+handleDescribe env (Right e) = putStrLn (show e) >> return env
 
 handleImport env id = do
     p <- parseFromFile parseFile id
@@ -63,10 +73,10 @@ handleImport env id = do
         Right (funs, _) -> do
             return $ addFuns env funs
 
-handleCmd env (Eval e)    = handleEval env e
-handleCmd env (Dump e)    = handleDump env e
-handleCmd env (Import id) = handleImport env id
-handleCmd env Quit        = quit
+handleCmd env (Eval e)     = handleEval env e
+handleCmd env (Describe e) = handleDescribe env e
+handleCmd env (Import id)  = handleImport env id
+handleCmd env Quit         = quit
 
 run' :: Env -> IO ()
 run' env = do

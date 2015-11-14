@@ -4,6 +4,7 @@ import Prelude hiding (exp)
 import Letter.Core
 import Letter.Parser
 import Letter.InitialBasis
+import Letter.Compiler.Core
 import REPL.Core
 import Control.Monad.Trans
 import Control.Monad.Trans.Except
@@ -16,6 +17,7 @@ import System.Environment
 data Config = Config
             { filename :: Maybe String
             , dump     :: Bool
+            , target   :: Maybe String
             } deriving Show
 
 config = Config
@@ -25,6 +27,10 @@ config = Config
          ( long "dump-ast"
         <> short 'd'
         <> help "Dump the AST instead of evaluating" )
+     <*> (optional . strOption)
+         ( long "target"
+        <> short 't'
+        <> help "The target for compilation" )
 
 fillEnv :: [(String, FunDef)] -> Env -> Env
 fillEnv fs (Env fs' gs) = (Env (M.union (M.fromList fs) fs') gs)
@@ -46,11 +52,13 @@ dumpDefs = intercalate "\n" . map dumpDef . M.toList
 
 main :: IO ()
 main = do
-    (Config filename dump) <- execParser (info config fullDesc)
+    (Config filename dump target) <- execParser (info config fullDesc)
     case filename of
         (Just fn) -> do
             p <- parseFromFile parseFile fn
             case p of
                 (Left err) -> print err
-                (Right (defs, exps)) -> evaluate dump defs exps
+                (Right ls@(defs, exps)) -> case target of
+                    Nothing -> evaluate dump defs exps
+                    Just t  -> putStrLn $ compileC (builtinFunDefs ++ defs) exps
         Nothing -> runRepl

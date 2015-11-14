@@ -2,21 +2,23 @@ module REPL.Parser where
 
 import Letter.Core
 import Letter.Parser
-import Text.Megaparsec
 import Control.Monad (void)
 
 data Command = Eval Line
-             | Dump Line
+             | Describe Line
              | Import String
              | Quit
              deriving Show
 
-importCmd = Import <$> ((symbol ":i" <||> symbol ":import") >> filename)
+commandToken long short = choice' $ map (symbol . (':':)) [long, short]
 
-dump = (symbol ":d" >> (Dump <$> line))
-  <||> (symbol ":dump" >> (Dump <$> line))
+importCmd = Import <$> (commandToken "import" "i" >> filename)
 
-command = ((\_ -> Quit) <$> symbol ":q")
-     <||> importCmd
-     <||> dump
-     <||> (Eval <$> line)
+describe = commandToken "describe" "d" >> (Describe <$> line)
+
+commandExp = ((\_ -> Quit) <$> commandToken "quit" "q")
+        <||> importCmd
+        <||> describe
+        <||> (Eval <$> line)
+
+command = commandExp <* space
