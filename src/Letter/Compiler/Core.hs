@@ -62,7 +62,7 @@ infixOps = M.fromList [("and", "&&"), ("or", "||"), ("mod", "%"), ("=", "==")]
 compileFun :: String -> [Exp] -> String
 compileFun "if" (e1:e2:e3:_) = inParens $ (compileExp e1) ++ " ? " ++ compileExp e2 ++ " : " ++ compileExp e3
 compileFun "not" (e:_)       = "!" ++ inParens (compileExp e)
-compileFun "print" (e:_)     = "printf(\"%ld\\n\", " ++ compileExp e ++ ")"
+compileFun "print" (e:_)     = "printf(\"%ld\\n\", (long)" ++ compileExp e ++ ")"
 compileFun "do" exps = intercalate "\n" $
     [ "({"
     , intercalate "\n" $ map ((++ ";") . compileExp) exps
@@ -75,4 +75,4 @@ compileFun n exps
         Just n' -> inParens $ compileExp (head exps) ++ " " ++ n' ++ " " ++ compileExp ((head . tail) exps)
 
 cleanedFunName :: String -> String
-cleanedFunName = ("letter_" ++) . intercalate "_" . splitOn "-" . filter (/= '?')
+cleanedFunName = ("l_" ++) . intercalate "_" . splitOn "-" . filter (/= '?')
