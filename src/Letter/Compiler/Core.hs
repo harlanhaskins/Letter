@@ -58,8 +58,11 @@ funDecl id args = "long " ++ cleanedFunName id ++ (inParens . intercalate ", " .
 inParens :: String -> String
 inParens s = "(" ++ s ++ ")"
 
+infixStandardOps = map pair ["+", "-", "*", "/", "<", ">", "<=", ">="]
+    where pair x = (x, x)
+infixReplaceOps = [("and", "&&"), ("or", "||"), ("mod", "%"), ("=", "==")]
 infixOps :: M.Map String String
-infixOps = M.fromList [("and", "&&"), ("or", "||"), ("mod", "%"), ("=", "==")]
+infixOps = M.fromList $ infixReplaceOps ++ infixStandardOps
 
 compileMany = intercalate "\n" . map ((++ ";") . compileExp)
 
@@ -72,9 +75,8 @@ compileFun "do" exps = intercalate "\n" $
     , compileMany exps
     , "});"
     ]
-compileFun n exps
-    | n `elem` ["+", "-", "*", "/", "<", ">", "<=", ">="] = (inParens . intercalate (" " ++ n ++ " ") . (map compileExp)) exps
-    | otherwise = case (M.lookup n infixOps) of
+compileFun n exps =
+    case (M.lookup n infixOps) of
         Nothing -> (cleanedFunName n) ++ (inParens ((intercalate ", " . map compileExp) exps))
         Just n' -> inParens $ compileExp (head exps) ++ " " ++ n' ++ " " ++ compileExp ((head . tail) exps)
 
