@@ -56,7 +56,6 @@ handleDescribe env@(Env fs gs) (Right (Var id)) = do
     case M.lookup id fs of
         Nothing -> case M.lookup id gs of
                         Nothing  -> do
-                            putStrLn $ "Unbound reference: " ++ id
                             return env
                         Just e   -> do
                             putStrLn $ showDef id e

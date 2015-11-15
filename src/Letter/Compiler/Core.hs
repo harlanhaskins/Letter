@@ -5,6 +5,8 @@ import Letter.Parser
 import Data.List
 import Data.List.Split
 import Data.Either
+import Data.ByteString.Char8 as B (ByteString, pack, unpack)
+import Crypto.Hash
 import qualified Data.Map as M
 
 class Compiler a where
@@ -31,7 +33,7 @@ compileC funs exps = intercalate "\n" $
     [ "#include <stdio.h>"
     , intercalate "\n" $ headers ++ bodies
     , "int main() {"
-    , compileFun "do" exps
+    , compileMany exps
     , "return 0;"
     , "}"
     ]
@@ -59,13 +61,15 @@ inParens s = "(" ++ s ++ ")"
 infixOps :: M.Map String String
 infixOps = M.fromList [("and", "&&"), ("or", "||"), ("mod", "%"), ("=", "==")]
 
+compileMany = intercalate "\n" . map ((++ ";") . compileExp)
+
 compileFun :: String -> [Exp] -> String
 compileFun "if" (e1:e2:e3:_) = inParens $ (compileExp e1) ++ " ? " ++ compileExp e2 ++ " : " ++ compileExp e3
 compileFun "not" (e:_)       = "!" ++ inParens (compileExp e)
 compileFun "print" (e:_)     = "printf(\"%ld\\n\", (long)" ++ compileExp e ++ ")"
 compileFun "do" exps = intercalate "\n" $
     [ "({"
-    , intercalate "\n" $ map ((++ ";") . compileExp) exps
+    , compileMany exps
     , "});"
     ]
 compileFun n exps
@@ -74,5 +78,10 @@ compileFun n exps
         Nothing -> (cleanedFunName n) ++ (inParens ((intercalate ", " . map compileExp) exps))
         Just n' -> inParens $ compileExp (head exps) ++ " " ++ n' ++ " " ++ compileExp ((head . tail) exps)
 
+md5 :: B.ByteString -> Digest MD5
+md5 = hash
+
 cleanedFunName :: String -> String
-cleanedFunName = ("l_" ++) . intercalate "_" . splitOn "-" . filter (/= '?')
+cleanedFunName = ("l_" ++) . B.unpack . digestToHexByteString . md5 . B.pack
+
+replace s1 s2 = intercalate s2 . splitOn s1

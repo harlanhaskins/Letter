@@ -25,6 +25,7 @@ library
   build-depends:       base >= 4.7 && < 5
                      , bytestring
                      , containers
+                     , cryptohash
                      , errors
                      , file-embed
                      , megaparsec
@@ -43,6 +44,7 @@ executable letter
   build-depends:       base
                      , bytestring
                      , containers
+                     , cryptohash
                      , errors
                      , file-embed
                      , optparse-applicative
