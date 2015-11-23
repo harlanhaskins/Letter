@@ -22,6 +22,7 @@ library
   other-extensions:    OverloadedStrings
                      , BangPatterns
                      , DeriveAnyClass
+                     , QuasiQuotes
   build-depends:       base >= 4.7 && < 5
                      , bytestring
                      , containers
@@ -41,6 +42,7 @@ executable letter
   other-extensions:    OverloadedStrings
                      , BangPatterns
                      , DeriveAnyClass
+                     , QuasiQuotes
   build-depends:       base
                      , bytestring
                      , containers

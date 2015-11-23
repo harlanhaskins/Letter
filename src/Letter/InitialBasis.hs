@@ -38,9 +38,9 @@ checkExpectDef env (e1:e2:_) = do
 
 doDef :: Env -> [Exp] -> LetterResult Exp
 doDef env []   = return $ NExp 0
-doDef env@(Env fs gs) ((Let !id !e):(!es)) = doDef (Env fs (M.insert id e gs)) es
+doDef env@(Env fs gs) (Let !id !e:(!es)) = doDef (Env fs (M.insert id e gs)) es
 doDef env [!e] = reduce env e
-doDef env (!e:(!es)) = do
+doDef env (e:(!es)) = do
     _ <- reduce env e
     doDef env es
 
@@ -55,14 +55,14 @@ printDef :: Env -> [Exp] -> LetterResult Exp
 printDef env (e:_) = do
     res <- lift . runExceptT $ eval env e
     case res of
-        (Right val) -> (lift $ print val) >> return (NExp val)
+        (Right val) -> lift (print val) >> return (NExp val)
         (Left e)    -> throwE e
 
 toBool 0 = False
 toBool _ = True
 
-boolify :: (Integer -> Integer -> Bool) -> (Integer -> Integer -> Integer)
-boolify f = \a b -> if f a b then 1 else 0
+boolify :: (Integer -> Integer -> Bool) -> Integer -> Integer -> Integer
+boolify f a b = if f a b then 1 else 0
 
 orDef :: Env -> [Exp] -> LetterResult Exp
 orDef env (e1:e2:_) = do

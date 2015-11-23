@@ -16,7 +16,7 @@ import qualified Text.Megaparsec.Lexer as L
 type Line = Either (String, FunDef) Exp
 
 infixl <||>
-p <||> q = (try p) <|> (try q)
+p <||> q = try p <|> try q
 
 choice' :: [Parser a] -> Parser a
 choice' = choice . map try
@@ -32,7 +32,7 @@ lexeme        = L.lexeme space
 integer       = lexeme L.integer
 signedInteger = L.signed space integer
 
-identifierChar = (C.alphaNumChar <||> (C.oneOf "*+-/_'=^?!<>"))
+identifierChar = C.alphaNumChar <||> C.oneOf "*+-/_'=^?!<>"
 identifier = some identifierChar
 filename = some (identifierChar <||> C.char '.')
 
@@ -74,7 +74,7 @@ funDef = parens $ do
     name <- lexeme identifier
     vars <- parens varList
     e <- exp
-    return $ (name, UserFun vars e)
+    return (name, UserFun vars e)
 
 expList :: Parser [Exp]
 expList = (exp `MPC.sepBy` space) <* space

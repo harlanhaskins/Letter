@@ -42,7 +42,7 @@ instance Show FunDef where
 call :: Env -> String -> FunDef -> [Exp] -> LetterResult Exp
 call env n (BuiltinFun Nothing f) !args = f env args
 call env n (BuiltinFun (Just arity) f) !args
-    | (length args) == arity = f env args
+    | length args == arity = f env args
     | otherwise = argsError n arity (length args)
 call env n (UserFun !ns !e) !args
     | length args == length ns = do
@@ -63,11 +63,11 @@ eval env e        = reduce env e >>= eval env
 
 reduce :: Env -> Exp -> LetterResult Exp
 reduce env n@(NExp _) = liftIO $ return n
-reduce env (Var !id)   = do
+reduce env (Var !id) =
     case findGlobal env id of
         Nothing -> throwE $ "Use of undeclared identifier \"" ++ id ++ "\""
         (Just e) -> reduce env e
-reduce env (FunCall !id !args) = do
+reduce env (FunCall !id !args) =
     case findFun env id of
         Nothing -> throwE $ "Use of undeclared function \"" ++ id ++ "\""
         (Just f) -> call env id f args
