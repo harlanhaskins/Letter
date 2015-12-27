@@ -98,21 +98,21 @@ string Parser::unconsumedInput() {
     return input.substr(currentTokenIndex, input.size() - currentTokenIndex);
 }
 
-void Parser::parseFile(vector<unique_ptr<Exp>> &exps, vector<unique_ptr<Func>> &funcs) {
+void Parser::parseFile(vector<shared_ptr<Exp>> &exps, vector<shared_ptr<Func>> &funcs) {
     while (currentToken != EofTok) {
-        std::unique_ptr<Exp> exp;
-        std::unique_ptr<Func> func;
+        shared_ptr<Exp> exp;
+        shared_ptr<Func> func;
         parseLine(exp, func);
         if (exp) {
-            exps.push_back(move(exp));
+            exps.push_back(exp);
         } else if (func) {
-            funcs.push_back(move(func));
+            funcs.push_back(func);
         }
         seekToNextToken();
     }
 }
 
-unique_ptr<Func> Parser::parseFunction() {
+shared_ptr<Func> Parser::parseFunction() {
     auto name = identifierValue;
     vector<string> args;
     seekToNextToken();
@@ -126,10 +126,10 @@ unique_ptr<Func> Parser::parseFunction() {
     auto exp = parseExpression();
     if (!exp) return errorFunc("Invalid expression in function body for " + name);
     seekToNextToken();
-    return make_unique<UserFunc>(name, (int)args.size(), args, move(exp));
+    return make_shared<UserFunc>(name, (int)args.size(), args, move(exp));
 }
 
-void Parser::parseLine(unique_ptr<Exp> &exp, unique_ptr<Func> &func) {
+void Parser::parseLine(shared_ptr<Exp> &exp, shared_ptr<Func> &func) {
     if (this->currentToken == FunDefTok) {
         exp = nullptr;
         seekToNextToken();
@@ -140,7 +140,7 @@ void Parser::parseLine(unique_ptr<Exp> &exp, unique_ptr<Func> &func) {
     }
 }
 
-unique_ptr<Exp> Parser::parseExpression() {
+shared_ptr<Exp> Parser::parseExpression() {
     switch (this->currentToken) {
         case IdentifierTok:
             return parseVarLookup();
@@ -157,15 +157,15 @@ unique_ptr<Exp> Parser::parseExpression() {
     return nullptr;
 }
 
-unique_ptr<Exp> Parser::parseNumExp() {
-    return make_unique<NumExp>(numericValue);
+shared_ptr<Exp> Parser::parseNumExp() {
+    return make_shared<NumExp>(numericValue);
 }
 
-unique_ptr<Exp> Parser::parseVarLookup() {
-    return make_unique<VarExp>(identifierValue);
+shared_ptr<Exp> Parser::parseVarLookup() {
+    return make_shared<VarExp>(identifierValue);
 }
 
-unique_ptr<Exp> Parser::parseLetExp() {
+shared_ptr<Exp> Parser::parseLetExp() {
     seekToNextToken();
     auto name = identifierValue;
     seekToNextToken();
@@ -177,12 +177,12 @@ unique_ptr<Exp> Parser::parseLetExp() {
         return error("Expected ')' in 'let' expression.");
     }
     seekToNextToken();
-    return make_unique<LetExp>(name, move(exp));
+    return make_shared<LetExp>(name, move(exp));
 }
 
-unique_ptr<Exp> Parser::parseFunCall() {
+shared_ptr<Exp> Parser::parseFunCall() {
     auto funcName = identifierValue;
-    vector<unique_ptr<Exp>> exps;
+    vector<shared_ptr<Exp>> exps;
     seekToNextToken();
     while (currentToken != ')') {
         if (currentToken == EofTok)
@@ -192,15 +192,15 @@ unique_ptr<Exp> Parser::parseFunCall() {
         exps.push_back(move(exp));
         seekToNextToken();
     }
-    return make_unique<FunCallExp>(funcName, move(exps));
+    return make_shared<FunCallExp>(funcName, move(exps));
 }
 
-unique_ptr<Exp> Parser::error(string msg) {
+shared_ptr<Exp> Parser::error(string msg) {
     cerr << msg << endl;
     return nullptr;
 }
 
-unique_ptr<Func> Parser::errorFunc(string msg) {
+shared_ptr<Func> Parser::errorFunc(string msg) {
     error(msg);
     return nullptr;
 }

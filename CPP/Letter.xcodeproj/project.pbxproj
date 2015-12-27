@@ -11,6 +11,8 @@
 		DCAEE1311C2C65CD00B5AB97 /* Exp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE12F1C2C65CD00B5AB97 /* Exp.cpp */; };
 		DCAEE1341C2C692700B5AB97 /* Func.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE1321C2C692700B5AB97 /* Func.cpp */; };
 		DCAEE1371C2C8C7600B5AB97 /* Parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */; };
+		DCD0BC791C2FC40500C12405 /* Analyzer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BC771C2FC40500C12405 /* Analyzer.cpp */; };
+		DCD0BC7C1C2FC50600C12405 /* Env.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BC7A1C2FC50600C12405 /* Env.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -34,6 +36,10 @@
 		DCAEE1331C2C692700B5AB97 /* Func.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Func.hpp; sourceTree = "<group>"; };
 		DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Parser.cpp; sourceTree = "<group>"; };
 		DCAEE1361C2C8C7600B5AB97 /* Parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Parser.hpp; sourceTree = "<group>"; };
+		DCD0BC771C2FC40500C12405 /* Analyzer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Analyzer.cpp; sourceTree = "<group>"; };
+		DCD0BC781C2FC40500C12405 /* Analyzer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Analyzer.hpp; sourceTree = "<group>"; };
+		DCD0BC7A1C2FC50600C12405 /* Env.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Env.cpp; sourceTree = "<group>"; };
+		DCD0BC7B1C2FC50600C12405 /* Env.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Env.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +74,10 @@
 			children = (
 				DCAEE1331C2C692700B5AB97 /* Func.hpp */,
 				DCAEE1321C2C692700B5AB97 /* Func.cpp */,
+				DCD0BC781C2FC40500C12405 /* Analyzer.hpp */,
+				DCD0BC771C2FC40500C12405 /* Analyzer.cpp */,
+				DCD0BC7B1C2FC50600C12405 /* Env.hpp */,
+				DCD0BC7A1C2FC50600C12405 /* Env.cpp */,
 				DCAEE1361C2C8C7600B5AB97 /* Parser.hpp */,
 				DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */,
 				DCAEDEC11C2C582E00B5AB97 /* main.cpp */,
@@ -133,8 +143,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DCD0BC791C2FC40500C12405 /* Analyzer.cpp in Sources */,
 				DCAEE1371C2C8C7600B5AB97 /* Parser.cpp in Sources */,
 				DCAEE1341C2C692700B5AB97 /* Func.cpp in Sources */,
+				DCD0BC7C1C2FC50600C12405 /* Env.cpp in Sources */,
 				DCAEE1311C2C65CD00B5AB97 /* Exp.cpp in Sources */,
 				DCAEDEC21C2C582E00B5AB97 /* main.cpp in Sources */,
 			);

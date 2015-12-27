@@ -23,21 +23,21 @@ public:
     Parser(std::string input): input(input) {
         seekToNextToken();
     }
-    std::unique_ptr<Exp> parseExpression();
-    std::unique_ptr<Func> parseFunction();
-    void parseLine(std::unique_ptr<Exp> &exp, std::unique_ptr<Func> &func);
-    void parseFile(std::vector<std::unique_ptr<Exp>> &exps, std::vector<std::unique_ptr<Func>> &funcs);
+    std::shared_ptr<Exp> parseExpression();
+    std::shared_ptr<Func> parseFunction();
+    void parseLine(std::shared_ptr<Exp> &exp, std::shared_ptr<Func> &func);
+    void parseFile(std::vector<std::shared_ptr<Exp>> &exps, std::vector<std::shared_ptr<Func>> &funcs);
 private:
     int gettok();
     int seekToNextToken();
     char currentChar();
     std::string unconsumedInput();
-    std::unique_ptr<Exp> parseNumExp();
-    std::unique_ptr<Exp> parseVarLookup();
-    std::unique_ptr<Exp> parseFunCall();
-    std::unique_ptr<Exp> parseLetExp();
-    std::unique_ptr<Exp> error(std::string msg);
-    std::unique_ptr<Func> errorFunc(std::string msg);
+    std::shared_ptr<Exp> parseNumExp();
+    std::shared_ptr<Exp> parseVarLookup();
+    std::shared_ptr<Exp> parseFunCall();
+    std::shared_ptr<Exp> parseLetExp();
+    std::shared_ptr<Exp> error(std::string msg);
+    std::shared_ptr<Func> errorFunc(std::string msg);
 };
 
 #endif /* Parser_hpp */

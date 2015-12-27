@@ -38,16 +38,16 @@ public:
 class FunCallExp: public Exp {
 public:
     std::string func;
-    std::vector<std::unique_ptr<Exp>> args;
-    FunCallExp(std::string func, std::vector<std::unique_ptr<Exp>> args): func(func), args(move(args)) {}
+    std::vector<std::shared_ptr<Exp>> args;
+    FunCallExp(std::string func, std::vector<std::shared_ptr<Exp>> args): func(func), args(move(args)) {}
     virtual std::string dump(std::string indent = "");
 };
 
 class LetExp: public Exp {
 public:
     std::string name;
-    std::unique_ptr<Exp> binding;
-    LetExp(std::string name, std::unique_ptr<Exp> binding): name(name), binding(move(binding)) {}
+    std::shared_ptr<Exp> binding;
+    LetExp(std::string name, std::shared_ptr<Exp> binding): name(name), binding(move(binding)) {}
     virtual std::string dump(std::string indent = "");
 };
 

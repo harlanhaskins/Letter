@@ -19,31 +19,32 @@ const auto INFINITE_ARITY = -1;
 class Func {
 public:
     std::string name;
-    int arity;
-    std::vector<std::string> args;
     virtual std::string dump(std::string indent = "") = 0;
+    virtual int arity() = 0;
 };
 
 class UserFunc: public Func {
-    std::unique_ptr<Exp> body;
 public:
-    UserFunc(std::string name, int arity, std::vector<std::string> args, std::unique_ptr<Exp> body): body(move(body)) {
+    std::shared_ptr<Exp> body;
+    std::vector<std::string> args;
+    UserFunc(std::string name, int arity, std::vector<std::string> args, std::shared_ptr<Exp> body): body(move(body)) {
         this->args = args;
-        this->arity = arity;
         this->name = name;
     }
     virtual std::string dump(std::string indent = "");
+    virtual int arity();
 };
 
 class BuiltinFunc: public Func {
-    std::function<Exp (std::vector<std::unique_ptr<Exp>> args)> reduce;
+private:
+    int _arity;
 public:
-    BuiltinFunc(std::string name, int arity, std::vector<std::string> args, std::function<Exp (std::vector<std::unique_ptr<Exp>> args)> reduce): reduce(reduce) {
-        this->args = args;
-        this->arity = arity;
+    BuiltinFunc(std::string name, int arity) {
+        this->_arity = arity;
         this->name = name;
     }
     virtual std::string dump(std::string indent = "");
+    virtual int arity();
 };
 
 #endif /* Func_hpp */

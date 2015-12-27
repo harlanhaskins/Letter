@@ -24,3 +24,15 @@ std::string UserFunc::dump(std::string indent) {
     s += indent + "] \n" + this->body->dump(indent + "    ");
     return s;
 }
+
+std::string BuiltinFunc::dump(std::string indent) {
+    return "BuiltinFunDef arity = " + std::to_string(this->arity());
+}
+
+int UserFunc::arity() {
+    return (int)this->args.size();
+}
+
+int BuiltinFunc::arity() {
+    return this->_arity;
+}
