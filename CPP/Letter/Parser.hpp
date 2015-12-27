@@ -20,7 +20,9 @@ class Parser {
     long numericValue = 0;
     std::string identifierValue = "";
 public:
-    Parser(std::string input): input(input) {}
+    Parser(std::string input): input(input) {
+        seekToNextToken();
+    }
     std::unique_ptr<Exp> parseExpression();
     std::unique_ptr<Func> parseFunction();
     void parseLine(std::unique_ptr<Exp> &exp, std::unique_ptr<Func> &func);

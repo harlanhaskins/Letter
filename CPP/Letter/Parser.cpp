@@ -62,6 +62,8 @@ int Parser::gettok() {
         
         if (identifierValue == "def") {
             return FunDefTok;
+        } else if (identifierValue == "let") {
+            return LetTok;
         } else {
             while (isident(currentChar())) {
                 identifierValue += currentChar();
@@ -82,7 +84,7 @@ int Parser::gettok() {
     if (currentChar() == EOF) {
         return EofTok;
     }
-    
+
     auto c = currentChar();
     currentTokenIndex++;
     return c;
@@ -105,9 +107,8 @@ void Parser::parseFile(vector<unique_ptr<Exp>> &exps, vector<unique_ptr<Func>> &
             exps.push_back(move(exp));
         } else if (func) {
             funcs.push_back(move(func));
-        } else {
-            cout << "Unknown expression.";
         }
+        seekToNextToken();
     }
 }
 
@@ -121,14 +122,14 @@ unique_ptr<Func> Parser::parseFunction() {
         args.push_back(identifierValue);
         seekToNextToken();
     }
-    seekToNextToken();
+    seekToNextToken(); // find subexpression.
     auto exp = parseExpression();
     if (!exp) return errorFunc("Invalid expression in function body for " + name);
+    seekToNextToken();
     return make_unique<UserFunc>(name, (int)args.size(), args, move(exp));
 }
 
 void Parser::parseLine(unique_ptr<Exp> &exp, unique_ptr<Func> &func) {
-    seekToNextToken();
     if (this->currentToken == FunDefTok) {
         exp = nullptr;
         seekToNextToken();
@@ -147,6 +148,8 @@ unique_ptr<Exp> Parser::parseExpression() {
             return parseNumExp();
         case FunCallTok:
             return parseFunCall();
+        case LetTok:
+            return parseLetExp();
         case EofTok:
             return error("Unexpected EOF");
         default: break;
