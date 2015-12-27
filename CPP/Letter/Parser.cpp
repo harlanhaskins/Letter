@@ -166,6 +166,7 @@ unique_ptr<Exp> Parser::parseVarLookup() {
 }
 
 unique_ptr<Exp> Parser::parseLetExp() {
+    seekToNextToken();
     auto name = identifierValue;
     seekToNextToken();
     auto exp = parseExpression();

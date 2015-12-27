@@ -19,7 +19,7 @@ string VarExp::dump(string indent) {
 }
 
 string LetExp::dump(string indent) {
-    return indent + "LetExp \"" + this->name + "\" = " + this->binding->dump();
+    return indent + "LetExp \"" + this->name + "\" = \n" + this->binding->dump(indent + "    ");
 }
 
 string FunCallExp::dump(string indent) {
