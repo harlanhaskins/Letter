@@ -1,5 +1,7 @@
 flags: {}
 packages:
 - '.'
-extra-deps: [megaparsec-4.1.1]
-resolver: nightly-2015-11-17
+extra-deps:
+  - megaparsec-4.1.1
+resolver:
+    lts-3.14
