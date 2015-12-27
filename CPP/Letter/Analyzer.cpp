@@ -51,7 +51,12 @@ std::vector<std::string> FuncAnalyzer::analyze(std::shared_ptr<Func> f) {
     ExpAnalyzer analyzer(this->env);
     UserFunc *userFunc = dynamic_cast<UserFunc *>(&*f);
     if (userFunc) {
-        return analyzer.analyze(userFunc->body);
+        auto reasons = analyzer.analyze(userFunc->body);
+        std::transform(reasons.begin(), reasons.end(), reasons.begin(),
+                       [userFunc](std::string r) {
+                           return "In function definition for \"" + userFunc->name + "\":\n    " + r;
+                       });
+        return reasons;
     }
     return std::vector<std::string>();
 }

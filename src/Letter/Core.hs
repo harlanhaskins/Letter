@@ -23,7 +23,7 @@ data Exp = NExp !Integer
          | Var !String
          | Let !String !Exp
          | FunCall !String ![Exp]
-         deriving Show
+         deriving (Show, Eq)
 
 data Env = Env
          { functions :: M.Map String FunDef

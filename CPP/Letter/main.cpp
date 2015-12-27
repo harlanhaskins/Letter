@@ -58,7 +58,7 @@ int main(int argc, const char * argv[]) {
     for (auto &exp : exps) {
         std::vector<std::string> reasons = expAnalyzer.analyze(exp);
         if (reasons.empty()) {
-            std::cout << exp->dump() << std::endl;
+//            std::cout << exp->dump() << std::endl;
         } else {
             for (auto &reason: reasons) {
                 std::cout << "Warning: " << reason << std::endl;
@@ -69,7 +69,7 @@ int main(int argc, const char * argv[]) {
     for (auto &func : funcs) {
         std::vector<std::string> reasons = funcAnalyzer.analyze(func);
         if (reasons.empty()) {
-            std::cout << func->dump() << std::endl;
+//            std::cout << func->dump() << std::endl;
         } else {
             for (auto &reason: reasons) {
                 std::cout << "Warning: " << reason << std::endl;

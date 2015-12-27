@@ -7,19 +7,20 @@
 //
 
 #include "Env.hpp"
+using namespace std;
 
-void Env::addGlobal(std::string name, std::shared_ptr<Exp> exp) {
-    this->globals.insert(std::pair<std::string, std::shared_ptr<Exp>>(name, exp));
+void Env::addGlobal(string name, shared_ptr<Exp> exp) {
+    this->globals.insert(make_pair(name, exp));
 }
 
-void Env::addFunc(std::shared_ptr<Func> func) {
-    this->funcs.insert(std::pair<std::string, std::shared_ptr<Func>>(func->name, func));
+void Env::addFunc(shared_ptr<Func> func) {
+    this->funcs.insert(make_pair(func->name, func));
 }
 
-std::shared_ptr<Exp> Env::lookupGlobal(std::string name) {
+shared_ptr<Exp> Env::lookupGlobal(string name) {
     return this->globals[name];
 }
 
-std::shared_ptr<Func> Env::lookupFunc(std::string name) {
+shared_ptr<Func> Env::lookupFunc(string name) {
     return this->funcs[name];
 }
