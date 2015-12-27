@@ -17,6 +17,10 @@ Env defaultEnv() {
     Env env;
     env.addFunc(std::make_shared<BuiltinFunc>("+", 2));
     env.addFunc(std::make_shared<BuiltinFunc>("-", 2));
+    env.addFunc(std::make_shared<BuiltinFunc>("*", 2));
+    env.addFunc(std::make_shared<BuiltinFunc>("/", 2));
+    env.addFunc(std::make_shared<BuiltinFunc>("min", 2));
+    env.addFunc(std::make_shared<BuiltinFunc>("max", 2));
     env.addFunc(std::make_shared<BuiltinFunc>("=", 2));
     env.addFunc(std::make_shared<BuiltinFunc>("<", 2));
     env.addFunc(std::make_shared<BuiltinFunc>(">", 2));
@@ -33,7 +37,11 @@ Env defaultEnv() {
 }
 
 int main(int argc, const char * argv[]) {
-    std::ifstream file("/Users/harlan/Documents/Code/Haskell/Letter/prog01.ltr", std::iostream::binary | std::iostream::ate);
+    if (argc < 2) {
+        std::cerr << "You must specify a Letter file.\n";
+        return EXIT_FAILURE;
+    }
+    std::ifstream file(argv[1], std::iostream::binary | std::iostream::ate);
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
     char *testCode = (char *)malloc(size * sizeof(char));
@@ -49,7 +57,9 @@ int main(int argc, const char * argv[]) {
     ExpAnalyzer expAnalyzer(env);
     for (auto &exp : exps) {
         std::vector<std::string> reasons = expAnalyzer.analyze(exp);
-        if (!reasons.empty()) {
+        if (reasons.empty()) {
+//            std::cout << exp->dump() << std::endl;
+        } else {
             for (auto &reason: reasons) {
                 std::cout << "Warning: " << reason << std::endl;
             }
@@ -58,7 +68,9 @@ int main(int argc, const char * argv[]) {
     FuncAnalyzer funcAnalyzer(env);
     for (auto &func : funcs) {
         std::vector<std::string> reasons = funcAnalyzer.analyze(func);
-        if (!reasons.empty()) {
+        if (reasons.empty()) {
+//            std::cout << func->dump() << std::endl;
+        } else {
             for (auto &reason: reasons) {
                 std::cout << "Warning: " << reason << std::endl;
             }

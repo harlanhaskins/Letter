@@ -21,6 +21,10 @@ std::vector<std::string> ExpAnalyzer::analyze(std::shared_ptr<Exp> exp) {
             reasons.push_back(reason);
             return reasons;
         }
+        for (auto &exp: funCallExp->args) {
+            auto subReasons = analyze(exp);
+            reasons.insert(reasons.end(), subReasons.begin(), subReasons.end());
+        }
     }
     return reasons;
 }
