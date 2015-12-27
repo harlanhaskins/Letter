@@ -19,6 +19,7 @@ library
                      , Letter.Parser
                      , Letter.InitialBasis
                      , Letter.Compiler.Core
+                     , Letter.Analyzer
   other-extensions:    OverloadedStrings
                      , BangPatterns
                      , DeriveAnyClass
