@@ -24,9 +24,9 @@ public:
         seekToNextToken();
     }
     std::shared_ptr<Exp> parseExpression();
-    std::shared_ptr<Func> parseFunction();
-    void parseLine(std::shared_ptr<Exp> &exp, std::shared_ptr<Func> &func);
-    void parseFile(std::vector<std::shared_ptr<Exp>> &exps, std::vector<std::shared_ptr<Func>> &funcs);
+    std::shared_ptr<UserFunc> parseFunction();
+    void parseLine(std::shared_ptr<Exp> &exp, std::shared_ptr<UserFunc> &func);
+    void parseFile(std::vector<std::shared_ptr<Exp>> &exps, std::vector<std::shared_ptr<UserFunc>> &funcs);
 private:
     int gettok();
     int seekToNextToken();
@@ -37,7 +37,7 @@ private:
     std::shared_ptr<Exp> parseFunCall();
     std::shared_ptr<Exp> parseLetExp();
     std::shared_ptr<Exp> error(std::string msg);
-    std::shared_ptr<Func> errorFunc(std::string msg);
+    std::shared_ptr<UserFunc> errorFunc(std::string msg);
 };
 
 #endif /* Parser_hpp */

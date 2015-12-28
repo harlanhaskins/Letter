@@ -14,6 +14,13 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
+
+using namespace llvm;
 
 class Exp {
 public:
@@ -39,7 +46,7 @@ class FunCallExp: public Exp {
 public:
     std::string func;
     std::vector<std::shared_ptr<Exp>> args;
-    FunCallExp(std::string func, std::vector<std::shared_ptr<Exp>> args): func(func), args(move(args)) {}
+    FunCallExp(std::string func, std::vector<std::shared_ptr<Exp>> args): func(func), args(args) {}
     virtual std::string dump(std::string indent = "");
 };
 

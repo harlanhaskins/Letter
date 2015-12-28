@@ -12,6 +12,7 @@
 #include <vector>
 #include "Parser.hpp"
 #include "Analyzer.hpp"
+#include "IRGenerator.hpp"
 
 Env defaultEnv() {
     Env env;
@@ -48,33 +49,35 @@ int main(int argc, const char * argv[]) {
     file.read(testCode, size);
     Parser p(testCode);
     std::vector<std::shared_ptr<Exp>> exps;
-    std::vector<std::shared_ptr<Func>> funcs;
+    std::vector<std::shared_ptr<UserFunc>> funcs;
     p.parseFile(exps, funcs);
     Env env = defaultEnv();
     for (auto &func: funcs) {
         env.addFunc(func);
     }
-    ExpAnalyzer expAnalyzer(env);
-    for (auto &exp : exps) {
-        std::vector<std::string> reasons = expAnalyzer.analyze(exp);
-        if (reasons.empty()) {
-//            std::cout << exp->dump() << std::endl;
-        } else {
-            for (auto &reason: reasons) {
-                std::cout << "Warning: " << reason << std::endl;
-            }
-        }
-    }
+    IRGenerator generator(argv[1], true);
     FuncAnalyzer funcAnalyzer(env);
     for (auto &func : funcs) {
         std::vector<std::string> reasons = funcAnalyzer.analyze(func);
         if (reasons.empty()) {
-//            std::cout << func->dump() << std::endl;
+            generator.genFunc(func);
         } else {
             for (auto &reason: reasons) {
                 std::cout << "Warning: " << reason << std::endl;
             }
         }
     }
+    ExpAnalyzer expAnalyzer(env);
+    for (auto &exp : exps) {
+        std::vector<std::string> reasons = expAnalyzer.analyze(exp);
+        if (reasons.empty()) {
+//            generator.genExp(exp);
+        } else {
+            for (auto &reason: reasons) {
+                std::cout << "Warning: " << reason << std::endl;
+            }
+        }
+    }
+    generator.module->dump();
     return 0;
 }

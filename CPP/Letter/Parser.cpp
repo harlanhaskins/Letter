@@ -98,10 +98,10 @@ string Parser::unconsumedInput() {
     return input.substr(currentTokenIndex, input.size() - currentTokenIndex);
 }
 
-void Parser::parseFile(vector<shared_ptr<Exp>> &exps, vector<shared_ptr<Func>> &funcs) {
+void Parser::parseFile(vector<shared_ptr<Exp>> &exps, vector<shared_ptr<UserFunc>> &funcs) {
     while (currentToken != EofTok) {
         shared_ptr<Exp> exp;
-        shared_ptr<Func> func;
+        shared_ptr<UserFunc> func;
         parseLine(exp, func);
         if (exp) {
             exps.push_back(exp);
@@ -112,7 +112,7 @@ void Parser::parseFile(vector<shared_ptr<Exp>> &exps, vector<shared_ptr<Func>> &
     }
 }
 
-shared_ptr<Func> Parser::parseFunction() {
+shared_ptr<UserFunc> Parser::parseFunction() {
     auto name = identifierValue;
     vector<string> args;
     seekToNextToken();
@@ -129,7 +129,7 @@ shared_ptr<Func> Parser::parseFunction() {
     return make_shared<UserFunc>(name, (int)args.size(), args, move(exp));
 }
 
-void Parser::parseLine(shared_ptr<Exp> &exp, shared_ptr<Func> &func) {
+void Parser::parseLine(shared_ptr<Exp> &exp, shared_ptr<UserFunc> &func) {
     if (this->currentToken == FunDefTok) {
         exp = nullptr;
         seekToNextToken();
@@ -200,7 +200,7 @@ shared_ptr<Exp> Parser::error(string msg) {
     return nullptr;
 }
 
-shared_ptr<Func> Parser::errorFunc(string msg) {
+shared_ptr<UserFunc> Parser::errorFunc(string msg) {
     error(msg);
     return nullptr;
 }
