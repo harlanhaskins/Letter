@@ -31,7 +31,7 @@ void IRGenerator::genBuiltins() {
     
     std::vector<Type *> types { Type::getInt64Ty(module->getContext()) };
     auto printType = FunctionType::get(Type::getInt64Ty(module->getContext()), types, false);
-    auto func = Function::Create(printType, Function::ExternalLinkage, "print", module);
+    auto func = Function::Create(printType, Function::ExternalLinkage, "print", module.get());
     namedValues.clear();
     
     Value *firstArg = nullptr;
@@ -40,7 +40,7 @@ void IRGenerator::genBuiltins() {
         firstArg = &arg;
     }
     
-    auto globalArray = globalStringPtr(module, "%d\n");
+    auto globalArray = globalStringPtr(module.get(), "%d\n");
     
     Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(module->getContext()));
     
@@ -59,6 +59,19 @@ void IRGenerator::genBuiltins() {
         if (optimized) passManager->run(*func);
     } else {
         func->eraseFromParent();
+    }
+}
+
+int64_t IRGenerator::execute() {
+    LetterJIT jit = LetterJIT();
+    this->module->setDataLayout(jit.getTargetMachine().createDataLayout());
+    jit.addModule(std::move(this->module));
+    auto main = (int64_t (*)())jit.findSymbol("main").getAddress();
+    if (main) {
+        return main();
+    } else {
+        std::cerr << "Could not find main function." << std::endl;
+        return EXIT_FAILURE;
     }
 }
 
@@ -81,7 +94,7 @@ void IRGenerator::createArgumentAllocas(std::vector<std::string> args, Function 
 llvm::Value *IRGenerator::genPrintf() {
     std::vector<Type *> args { Type::getInt8PtrTy(module->getContext()) };
     auto printfType = FunctionType::get(Type::getInt64Ty(module->getContext()), args, true);
-    auto f = Function::Create(printfType, Function::ExternalLinkage, "printf", module);
+    auto f = Function::Create(printfType, Function::ExternalLinkage, "printf", module.get());
     f->getAttributes().addAttribute(module->getContext(), 1, Attribute::NoAlias);
     return f;
 }
@@ -147,7 +160,7 @@ AllocaInst *IRGenerator::createEntryBlockAlloca(Function *f,
 Value *IRGenerator::genFunc(std::shared_ptr<UserFunc> func) {
     std::vector<Type *> types(func->arity(), Type::getInt64Ty(module->getContext()));
     auto ftype = FunctionType::get(Type::getInt64Ty(module->getContext()), types, false);
-    auto f = Function::Create(ftype, Function::ExternalLinkage, func->name, module);
+    auto f = Function::Create(ftype, Function::ExternalLinkage, func->name, module.get());
     unsigned idx = 0;
     for (auto &arg: f->args()) {
         arg.setName(func->args[idx++]);
@@ -169,7 +182,7 @@ Value *IRGenerator::genFunc(std::shared_ptr<UserFunc> func) {
 
 llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<Exp>> exps) {
     auto ftype = FunctionType::get(Type::getInt64Ty(module->getContext()), false);
-    auto f = Function::Create(ftype, Function::ExternalLinkage, "main", module);
+    auto f = Function::Create(ftype, Function::ExternalLinkage, "main", module.get());
     auto bb = BasicBlock::Create(module->getContext(), "entry", f);
     builder.SetInsertPoint(bb);
     namedValues.clear();

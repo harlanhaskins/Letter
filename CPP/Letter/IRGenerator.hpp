@@ -21,14 +21,16 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Transforms/Scalar.h"
+#include "LetterJIT.h"
 
 class IRGenerator {
 public:
-    llvm::Module *module;
+    std::unique_ptr<llvm::Module> module;
     bool optimized;
     IRGenerator(std::string moduleName, bool optimized): optimized(optimized), builder(getGlobalContext()) {
-        this->module = new Module(moduleName, getGlobalContext());
-        this->passManager = new legacy::FunctionPassManager(module);
+        
+        this->module = std::make_unique<Module>(moduleName, getGlobalContext());
+        this->passManager = std::make_unique<legacy::FunctionPassManager>(module.get());
         
         // Set up the optimizer pipeline.
         this->passManager->add(createBasicAliasAnalysisPass());
@@ -42,16 +44,12 @@ public:
         
         this->genBuiltins();
     };
-    ~IRGenerator() {
-        namedValues.clear();
-        delete this->passManager;
-        delete this->module;
-    }
     llvm::Value *genExp(std::shared_ptr<Exp> exp);
     llvm::Value *genFunc(std::shared_ptr<UserFunc> func);
     llvm::Value *genMainFunc(std::vector<std::shared_ptr<Exp>> exps);
+    int64_t execute();
 private:
-    legacy::FunctionPassManager *passManager;
+    std::unique_ptr<legacy::FunctionPassManager> passManager;
     llvm::IRBuilder<> builder;
     std::map<std::string, llvm::AllocaInst*> namedValues;
     void genBuiltins();

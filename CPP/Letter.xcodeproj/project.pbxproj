@@ -11,23 +11,11 @@
 		DCAEE1311C2C65CD00B5AB97 /* Exp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE12F1C2C65CD00B5AB97 /* Exp.cpp */; };
 		DCAEE1341C2C692700B5AB97 /* Func.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE1321C2C692700B5AB97 /* Func.cpp */; };
 		DCAEE1371C2C8C7600B5AB97 /* Parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */; };
+		DCCE95E71C3319CA00FA0513 /* libLLVM-3.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */; };
 		DCD0BC791C2FC40500C12405 /* Analyzer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BC771C2FC40500C12405 /* Analyzer.cpp */; };
 		DCD0BC7C1C2FC50600C12405 /* Env.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BC7A1C2FC50600C12405 /* Env.cpp */; };
 		DCD0BEEE1C30E2DF00C12405 /* IRGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BEEC1C30E2DF00C12405 /* IRGenerator.cpp */; };
 		DCD0BEF01C30E7BC00C12405 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEEF1C30E7BC00C12405 /* libcurses.tbd */; };
-		DCD0BEF91C30FD1A00C12405 /* libLLVMCodeGen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEF71C30FCA100C12405 /* libLLVMCodeGen.a */; };
-		DCD0BEFA1C30FD1A00C12405 /* libLLVMCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEE81C30E22600C12405 /* libLLVMCore.a */; };
-		DCD0BEFB1C30FD1A00C12405 /* libLLVMPasses.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEF11C30FC6500C12405 /* libLLVMPasses.a */; };
-		DCD0BEFC1C30FD1A00C12405 /* libLLVMSupport.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEE91C30E22600C12405 /* libLLVMSupport.a */; };
-		DCD0BEFD1C30FD1A00C12405 /* libLLVMTransformUtils.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEF21C30FC6500C12405 /* libLLVMTransformUtils.a */; };
-		DCD0BF031C30FD1A00C12405 /* libLLVMAnalysis.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEFE1C30FD1A00C12405 /* libLLVMAnalysis.a */; };
-		DCD0BF041C30FD1A00C12405 /* libLLVMInstCombine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEFF1C30FD1A00C12405 /* libLLVMInstCombine.a */; };
-		DCD0BF051C30FD1A00C12405 /* libLLVMMCJIT.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BF001C30FD1A00C12405 /* libLLVMMCJIT.a */; };
-		DCD0BF061C30FD1A00C12405 /* libLLVMTableGen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BF011C30FD1A00C12405 /* libLLVMTableGen.a */; };
-		DCD0BF071C30FD1A00C12405 /* libLLVMTarget.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BF021C30FD1A00C12405 /* libLLVMTarget.a */; };
-		DCD0BF091C30FD5E00C12405 /* libLLVMipa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BF081C30FD5E00C12405 /* libLLVMipa.a */; };
-		DCD0BF0C1C30FD8400C12405 /* libLLVMipo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BF0A1C30FD8400C12405 /* libLLVMipo.a */; };
-		DCD0BF0D1C30FD8400C12405 /* libLLVMScalarOpts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BF0B1C30FD8400C12405 /* libLLVMScalarOpts.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -51,6 +39,12 @@
 		DCAEE1331C2C692700B5AB97 /* Func.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Func.hpp; sourceTree = "<group>"; };
 		DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Parser.cpp; sourceTree = "<group>"; };
 		DCAEE1361C2C8C7600B5AB97 /* Parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Parser.hpp; sourceTree = "<group>"; };
+		DCCE95DD1C33150500FA0513 /* LetterJIT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LetterJIT.h; sourceTree = "<group>"; };
+		DCCE95DE1C33191200FA0513 /* libLLVMExecutionEngine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libLLVMExecutionEngine.a; path = "../../../../../../../usr/local/Cellar/llvm37/3.7.0/lib/llvm-3.7/lib/libLLVMExecutionEngine.a"; sourceTree = "<group>"; };
+		DCCE95E01C33193000FA0513 /* libLLVMMCParser.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libLLVMMCParser.a; path = "../../../../../../../usr/local/Cellar/llvm37/3.7.0/lib/llvm-3.7/lib/libLLVMMCParser.a"; sourceTree = "<group>"; };
+		DCCE95E21C3319AC00FA0513 /* libLLVMOrcJIT.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libLLVMOrcJIT.a; path = "../../../../../../../usr/local/Cellar/llvm37/3.7.0/lib/llvm-3.7/lib/libLLVMOrcJIT.a"; sourceTree = "<group>"; };
+		DCCE95E31C3319AC00FA0513 /* libLLVMRuntimeDyld.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libLLVMRuntimeDyld.a; path = "../../../../../../../usr/local/Cellar/llvm37/3.7.0/lib/llvm-3.7/lib/libLLVMRuntimeDyld.a"; sourceTree = "<group>"; };
+		DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libLLVM-3.7.dylib"; path = "../../../../../../../usr/local/Cellar/llvm37/3.7.0/lib/llvm-3.7/lib/libLLVM-3.7.dylib"; sourceTree = "<group>"; };
 		DCD0BC771C2FC40500C12405 /* Analyzer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Analyzer.cpp; sourceTree = "<group>"; };
 		DCD0BC781C2FC40500C12405 /* Analyzer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Analyzer.hpp; sourceTree = "<group>"; };
 		DCD0BC7A1C2FC50600C12405 /* Env.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Env.cpp; sourceTree = "<group>"; };
@@ -78,19 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DCD0BF0C1C30FD8400C12405 /* libLLVMipo.a in Frameworks */,
-				DCD0BF0D1C30FD8400C12405 /* libLLVMScalarOpts.a in Frameworks */,
-				DCD0BF091C30FD5E00C12405 /* libLLVMipa.a in Frameworks */,
-				DCD0BF031C30FD1A00C12405 /* libLLVMAnalysis.a in Frameworks */,
-				DCD0BF041C30FD1A00C12405 /* libLLVMInstCombine.a in Frameworks */,
-				DCD0BF051C30FD1A00C12405 /* libLLVMMCJIT.a in Frameworks */,
-				DCD0BF061C30FD1A00C12405 /* libLLVMTableGen.a in Frameworks */,
-				DCD0BF071C30FD1A00C12405 /* libLLVMTarget.a in Frameworks */,
-				DCD0BEF91C30FD1A00C12405 /* libLLVMCodeGen.a in Frameworks */,
-				DCD0BEFA1C30FD1A00C12405 /* libLLVMCore.a in Frameworks */,
-				DCD0BEFB1C30FD1A00C12405 /* libLLVMPasses.a in Frameworks */,
-				DCD0BEFC1C30FD1A00C12405 /* libLLVMSupport.a in Frameworks */,
-				DCD0BEFD1C30FD1A00C12405 /* libLLVMTransformUtils.a in Frameworks */,
+				DCCE95E71C3319CA00FA0513 /* libLLVM-3.7.dylib in Frameworks */,
 				DCD0BEF01C30E7BC00C12405 /* libcurses.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -101,6 +83,11 @@
 		DCAEDEB51C2C582E00B5AB97 = {
 			isa = PBXGroup;
 			children = (
+				DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */,
+				DCCE95E21C3319AC00FA0513 /* libLLVMOrcJIT.a */,
+				DCCE95E31C3319AC00FA0513 /* libLLVMRuntimeDyld.a */,
+				DCCE95E01C33193000FA0513 /* libLLVMMCParser.a */,
+				DCCE95DE1C33191200FA0513 /* libLLVMExecutionEngine.a */,
 				DCD0BF0A1C30FD8400C12405 /* libLLVMipo.a */,
 				DCD0BF0B1C30FD8400C12405 /* libLLVMScalarOpts.a */,
 				DCD0BF081C30FD5E00C12405 /* libLLVMipa.a */,
@@ -131,6 +118,7 @@
 		DCAEDEC01C2C582E00B5AB97 /* Letter */ = {
 			isa = PBXGroup;
 			children = (
+				DCCE95DD1C33150500FA0513 /* LetterJIT.h */,
 				DCD0BC771C2FC40500C12405 /* Analyzer.cpp */,
 				DCD0BC781C2FC40500C12405 /* Analyzer.hpp */,
 				DCD0BC7A1C2FC50600C12405 /* Env.cpp */,

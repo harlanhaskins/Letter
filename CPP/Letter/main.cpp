@@ -16,6 +16,8 @@
 #include "Analyzer.hpp"
 #include "IRGenerator.hpp"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/CommandLine.h"
+#include "LetterJIT.h"
 
 Env defaultEnv() {
     Env env;
@@ -40,29 +42,41 @@ Env defaultEnv() {
     return env;
 }
 
-void usage(const char *progName) {
-    std::cerr << "Usage: " << progName << " [FILE]" << std::endl;
-}
+cl::opt<std::string> filename(cl::Positional, cl::desc("<input file>"), cl::Required);
+cl::opt<bool> emitAST("emit-ast", cl::desc("Emit the AST to stdout"));
+cl::opt<bool> emitIR("emit-llvm", cl::desc("Emit the generated LLVM IR to stdout"));
 
 int main(int argc, const char * argv[]) {
-    if (argc < 2) {
-        usage(argv[0]);
-        return EXIT_FAILURE;
-    }
-    std::ifstream file(argv[1], std::iostream::binary | std::iostream::ate);
+    cl::ParseCommandLineOptions(argc, argv);
+    
+    std::ifstream file(filename.c_str(), std::iostream::binary | std::iostream::ate);
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
+    
     char *testCode = (char *)malloc(size * sizeof(char));
     file.read(testCode, size);
     Parser p(testCode);
     std::vector<std::shared_ptr<Exp>> exps;
     std::vector<std::shared_ptr<UserFunc>> funcs;
     p.parseFile(exps, funcs);
-    IRGenerator generator(argv[1], true);
-    for (auto &func : funcs) {
-        generator.genFunc(func);
+    if (emitAST) {
+        for (auto &func: funcs) {
+            std::cout << func->dump() << std::endl;
+        }
+        for (auto &exp: exps) {
+            std::cout << exp->dump() << std::endl;
+        }
+    } else {
+        IRGenerator generator(argv[1], true);
+        for (auto &func : funcs) {
+            generator.genFunc(func);
+        }
+        generator.genMainFunc(exps);
+        if (emitIR) {
+            generator.module->print(llvm::outs(), nullptr);
+        } else {
+            generator.execute();
+        }
     }
-    generator.genMainFunc(exps);
-    generator.module->print(llvm::outs(), nullptr);
     return 0;
 }
