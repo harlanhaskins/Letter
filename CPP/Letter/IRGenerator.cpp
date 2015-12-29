@@ -118,7 +118,7 @@ Value *IRGenerator::genNumExp(NumExp exp) {
 Value *IRGenerator::genVarExp(VarExp exp) {
     // Look this variable up in the function.
     Value *v = namedValues[exp.name];
-    if (!v) return error("Unknown variable name \"" + exp.name + "\"");
+    if (!v) error("Unknown variable name \"" + exp.name + "\"");
     return builder.CreateLoad(v, exp.name);
 }
 

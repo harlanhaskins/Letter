@@ -15,6 +15,7 @@
 #include "Parser.hpp"
 #include "Analyzer.hpp"
 #include "IRGenerator.hpp"
+#include "llvm/Support/raw_ostream.h"
 
 Env defaultEnv() {
     Env env;
@@ -53,35 +54,11 @@ int main(int argc, const char * argv[]) {
     std::vector<std::shared_ptr<Exp>> exps;
     std::vector<std::shared_ptr<UserFunc>> funcs;
     p.parseFile(exps, funcs);
-    Env env = defaultEnv();
-    for (auto &func: funcs) {
-        env.addFunc(func);
-    }
     IRGenerator generator(argv[1], true);
-    FuncAnalyzer funcAnalyzer(env);
     for (auto &func : funcs) {
-        std::vector<std::string> reasons = funcAnalyzer.analyze(func);
-        if (reasons.empty()) {
-            generator.genFunc(func);
-            std::cout << func->dump() << std::endl;
-        } else {
-            for (auto &reason: reasons) {
-                std::cout << "Warning: " << reason << std::endl;
-            }
-        }
-    }
-    ExpAnalyzer expAnalyzer(env);
-    for (auto &exp : exps) {
-        std::vector<std::string> reasons = expAnalyzer.analyze(exp);
-        if (reasons.empty()) {
-            std::cout << exp->dump() << std::endl;
-        } else {
-            for (auto &reason: reasons) {
-                std::cout << "Warning: " << reason << std::endl;
-            }
-        }
+        generator.genFunc(func);
     }
     generator.genMainFunc(exps);
-    generator.module->dump();
+    generator.module->print(llvm::outs(), nullptr);
     return 0;
 }
