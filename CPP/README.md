@@ -13,5 +13,15 @@ brew install llvm37
 
 And the provided Xcode project will link properly.
 
-The program expects one argument, the filename to compile.
-It'll print the AST for the whole file, and all the LLVM IR.
+# Running
+
+The program will, by default, JIT and execute the entire file you provide it.
+
+## Arguments
+
+* -emit-ast:
+  * Emit the AST of the file to stdout
+* -emit-llvm:
+  * Emit the LLVM IR to stdout (useful for debugging)
+* -O
+  * Optimize the code prior to execution or printing.
