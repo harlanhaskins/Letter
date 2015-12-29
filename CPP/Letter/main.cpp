@@ -44,6 +44,7 @@ Env defaultEnv() {
 
 cl::opt<std::string> filename(cl::Positional, cl::desc("<input file>"), cl::Required);
 cl::opt<bool> emitAST("emit-ast", cl::desc("Emit the AST to stdout"));
+cl::opt<bool> optim("O", cl::desc("Optimize the code prior to execution"));
 cl::opt<bool> emitIR("emit-llvm", cl::desc("Emit the generated LLVM IR to stdout"));
 
 int main(int argc, const char * argv[]) {
@@ -67,7 +68,7 @@ int main(int argc, const char * argv[]) {
             std::cout << exp->dump() << std::endl;
         }
     } else {
-        IRGenerator generator(argv[1], true);
+        IRGenerator generator(argv[1], optim);
         for (auto &func : funcs) {
             generator.genFunc(func);
         }
