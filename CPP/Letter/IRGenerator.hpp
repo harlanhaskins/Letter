@@ -47,8 +47,9 @@ public:
         this->genBuiltins();
     };
     ~IRGenerator() {
-        delete this->module;
+        namedValues.clear();
         delete this->passManager;
+        delete this->module;
     }
     llvm::Value *genExp(std::shared_ptr<Exp> exp);
     llvm::Value *genFunc(std::shared_ptr<UserFunc> func);
@@ -58,11 +59,13 @@ private:
     llvm::IRBuilder<> builder;
     std::map<std::string, llvm::AllocaInst*> namedValues;
     void genBuiltins();
+    void printBindings();
     llvm::Value * genPrintf();
     llvm::Value *error(std::string message);
     llvm::Value *genNumExp(NumExp exp);
     llvm::Value *genVarExp(VarExp exp);
     llvm::Value *genLetExp(LetExp exp);
+    llvm::Value *genDoFunc(FunCallExp exp, Function *parent);
     llvm::Value *genFunCallExp(FunCallExp exp);
     llvm::Value *i64Cast(llvm::Value *v);
     llvm::AllocaInst *createEntryBlockAlloca(Function *f,

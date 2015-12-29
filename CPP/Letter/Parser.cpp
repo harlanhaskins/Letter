@@ -28,7 +28,7 @@ char Parser::currentChar() {
 }
 
 bool isident(char c) {
-    return !isspace(c) && c != ')' && c != '(' && c != ';' && c != EOF;
+    return isalnum(c) || c == '?' || c == '^' || c == '*' || c == '+' || c == '-' || c == '_' || c == '/' || c == '=' || c == '<' || c == '>';
 }
 
 int Parser::gettok() {

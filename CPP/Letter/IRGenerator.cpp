@@ -30,7 +30,7 @@ void IRGenerator::genBuiltins() {
     auto printf = genPrintf();
     
     std::vector<Type *> types { Type::getInt64Ty(module->getContext()) };
-    auto printType = FunctionType::get(Type::getInt64Ty(module->getContext()), types, true);
+    auto printType = FunctionType::get(Type::getInt64Ty(module->getContext()), types, false);
     auto func = Function::Create(printType, Function::ExternalLinkage, "print", module);
     namedValues.clear();
     
@@ -40,14 +40,13 @@ void IRGenerator::genBuiltins() {
         firstArg = &arg;
     }
     
-    auto globalArray = globalStringPtr(module, "%d");
+    auto globalArray = globalStringPtr(module, "%d\n");
     
     Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(module->getContext()));
     
     std::vector<Constant*> indices = {zero, zero};
     
     auto printfFormat = ConstantExpr::getGetElementPtr(globalArray->getType()->getScalarType()->getContainedType(0), globalArray, indices);
-    
     
     auto bb = BasicBlock::Create(module->getContext(), "entry", func);
     builder.SetInsertPoint(bb);
@@ -119,20 +118,17 @@ Value *IRGenerator::genNumExp(NumExp exp) {
 Value *IRGenerator::genVarExp(VarExp exp) {
     // Look this variable up in the function.
     Value *v = namedValues[exp.name];
-    if (!v) error("Unknown variable name \"" + exp.name + "\"");
+    if (!v) return error("Unknown variable name \"" + exp.name + "\"");
     return builder.CreateLoad(v, exp.name);
 }
 
 Value *IRGenerator::genLetExp(LetExp exp) {
-    
-    Function *function = builder.GetInsertBlock()->getParent();
-    
     auto v = genExp(exp.binding);
     if (!v) return nullptr;
     
     AllocaInst *curr = namedValues[exp.name];
     if (!curr) {
-        curr = createEntryBlockAlloca(function, exp.name);
+        curr = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), 0, exp.name);
         namedValues[exp.name] = curr;
     }
     builder.CreateStore(v, curr);
@@ -182,12 +178,43 @@ llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<Exp>> exps) {
     }
     builder.CreateRet(Constant::getNullValue(Type::getInt64Ty(module->getContext())));
     verifyFunction(*f);
-    if (optimized) passManager->run(*f);
+    if (optimized) {
+        passManager->run(*f);
+    }
     return f;
 }
 
 Value *IRGenerator::i64Cast(Value *v) {
     return builder.CreateIntCast(v, Type::getInt64Ty(module->getContext()), true);
+}
+
+void IRGenerator::printBindings() {
+    std::cerr << "Printing bindings:" << std::endl;
+    for (auto iterator = namedValues.begin(); iterator != namedValues.end(); iterator++) {
+        std::cerr << "    " << iterator->first << ": ";
+        iterator->second->dump();
+    }
+}
+
+Value *IRGenerator::genDoFunc(FunCallExp exp, Function *parent) {
+    auto res = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), nullptr,"dores");
+    auto bb = BasicBlock::Create(module->getContext(), "do", parent);
+    auto doretbb = BasicBlock::Create(module->getContext(), "doret");
+    builder.CreateBr(bb);
+    builder.SetInsertPoint(bb);
+    auto oldBindings = namedValues;
+    for (int i = 0; i < exp.args.size() - 1; i++) {
+        if (!genExp(exp.args[i])) return nullptr;
+    }
+    builder.CreateBr(doretbb);
+    parent->getBasicBlockList().push_back(doretbb);
+    bb = builder.GetInsertBlock();
+    builder.SetInsertPoint(doretbb);
+    Value *ret = genExp(exp.args.back());
+    if (!ret) return nullptr;
+    builder.CreateStore(ret, res);
+    namedValues = oldBindings;
+    return ret;
 }
 
 Value *IRGenerator::genFunCallExp(FunCallExp exp) {
@@ -261,7 +288,9 @@ Value *IRGenerator::genFunCallExp(FunCallExp exp) {
         return phi;
     }
     if (exp.func == "do") {
-        
+        std::map<std::string, AllocaInst *> oldBindings = namedValues;
+        auto func = builder.GetInsertBlock()->getParent();
+        return genDoFunc(exp, func);
     }
     Function *func = module->getFunction(exp.func);
     if (!func) return error("Unknown function \"" + exp.func + "\"");
