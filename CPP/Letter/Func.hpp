@@ -27,8 +27,7 @@ class UserFunc: public Func {
 public:
     std::shared_ptr<Exp> body;
     std::vector<std::string> args;
-    UserFunc(std::string name, int arity, std::vector<std::string> args, std::shared_ptr<Exp> body): body(move(body)) {
-        this->args = args;
+    UserFunc(std::string name, std::vector<std::string> args, std::shared_ptr<Exp> body): body(move(body)), args(args) {
         this->name = name;
     }
     virtual std::string dump(std::string indent = "");

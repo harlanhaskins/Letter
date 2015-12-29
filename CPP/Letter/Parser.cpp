@@ -126,7 +126,7 @@ shared_ptr<UserFunc> Parser::parseFunction() {
     auto exp = parseExpression();
     if (!exp) return errorFunc("Invalid expression in function body for " + name);
     seekToNextToken();
-    return make_shared<UserFunc>(name, (int)args.size(), args, move(exp));
+    return make_shared<UserFunc>(name, args, move(exp));
 }
 
 void Parser::parseLine(shared_ptr<Exp> &exp, shared_ptr<UserFunc> &func) {
@@ -173,10 +173,10 @@ shared_ptr<Exp> Parser::parseLetExp() {
     if (!exp) {
         return nullptr;
     }
+    seekToNextToken();
     if (currentToken != ')') {
         return error("Expected ')' in 'let' expression.");
     }
-    seekToNextToken();
     return make_shared<LetExp>(name, move(exp));
 }
 

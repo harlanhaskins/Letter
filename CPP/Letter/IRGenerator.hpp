@@ -22,13 +22,12 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Transforms/Scalar.h"
 
-static llvm::LLVMContext globalContext;
-
 class IRGenerator {
 public:
     llvm::Module *module;
-    IRGenerator(std::string moduleName, bool optimized): builder(globalContext) {
-        this->module = new Module(moduleName, globalContext);
+    bool optimized;
+    IRGenerator(std::string moduleName, bool optimized): optimized(optimized), builder(getGlobalContext()) {
+        this->module = new Module(moduleName, getGlobalContext());
         this->passManager = new legacy::FunctionPassManager(module);
         
         this->passManager->add(createBasicAliasAnalysisPass());
@@ -41,6 +40,8 @@ public:
         // Simplify the control flow graph (deleting unreachable blocks, etc).
         this->passManager->add(createCFGSimplificationPass());
         this->passManager->doInitialization();
+        
+        this->genBuiltins();
     };
     ~IRGenerator() {
         delete this->module;
@@ -48,10 +49,13 @@ public:
     }
     llvm::Value *genExp(std::shared_ptr<Exp> exp);
     llvm::Value *genFunc(std::shared_ptr<UserFunc> func);
+    llvm::Value *genMainFunc(std::vector<std::shared_ptr<Exp>> exps);
 private:
     legacy::FunctionPassManager *passManager;
     llvm::IRBuilder<> builder;
     std::map<std::string, llvm::Value*> namedValues;
+    void genBuiltins();
+    llvm::Value * genPrintf();
     llvm::Value *error(std::string message);
     llvm::Value *genNumExp(NumExp exp);
     llvm::Value *genVarExp(VarExp exp);

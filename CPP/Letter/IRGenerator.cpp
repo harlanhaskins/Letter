@@ -8,8 +8,68 @@
 
 #include <iostream>
 #include "IRGenerator.hpp"
+#include "llvm/IR/TypeBuilder.h"
+#include "llvm/IR/Constants.h"
 
 using namespace llvm;
+
+Constant *globalStringPtr(Module *m, std::string value) {
+    GlobalVariable* globalArray = new GlobalVariable(*m, ArrayType::get(Type::getInt8Ty(m->getContext()), value.size() + 1), true, GlobalValue::PrivateLinkage, 0, ".printfFormat");
+    globalArray->setAlignment(1);
+    
+    // Constant Definitions
+    Constant *constArray = ConstantDataArray::getString(m->getContext(), value, true);
+    
+    // Global Variable Definitions
+    globalArray->setInitializer(constArray);
+    
+    return globalArray;
+}
+
+void IRGenerator::genBuiltins() {
+    auto printf = genPrintf();
+    
+    std::vector<Type *> types { Type::getInt64Ty(module->getContext()) };
+    auto printType = FunctionType::get(Type::getInt64Ty(module->getContext()), types, true);
+    auto func = Function::Create(printType, Function::ExternalLinkage, "print", module);
+    namedValues.clear();
+    Value *firstArg = nullptr;
+    for (auto &arg: func->args()) {
+        arg.setName("arg");
+        namedValues[arg.getName()] = &arg;
+        firstArg = &arg;
+    }
+    
+    auto globalArray = globalStringPtr(module, "%d");
+    
+    Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(module->getContext()));
+    
+    std::vector<Constant*> indices = {zero, zero};
+    
+    auto printfFormat = ConstantExpr::getGetElementPtr(globalArray->getType()->getScalarType()->getContainedType(0), globalArray, indices);
+    
+    
+    auto bb = BasicBlock::Create(module->getContext(), "entry", func);
+    builder.SetInsertPoint(bb);
+    
+    if (printf) {
+        std::vector<Value *> args { printfFormat, namedValues["arg"] };
+        builder.CreateCall(printf, args, "calltmp");
+        builder.CreateRet(firstArg);
+        verifyFunction(*func);
+        if (optimized) passManager->run(*func);
+    } else {
+        func->eraseFromParent();
+    }
+}
+
+llvm::Value *IRGenerator::genPrintf() {
+    std::vector<Type *> args { Type::getInt8PtrTy(module->getContext()) };
+    auto printfType = FunctionType::get(Type::getInt64Ty(module->getContext()), args, true);
+    auto f = Function::Create(printfType, Function::ExternalLinkage, "printf", module);
+    f->getAttributes().addAttribute(module->getContext(), 1, Attribute::NoAlias);
+    return f;
+}
 
 Value *IRGenerator::genExp(std::shared_ptr<Exp> exp) {
     auto funCallExp = dynamic_cast<FunCallExp *>(&*exp);
@@ -37,7 +97,7 @@ Value *IRGenerator::error(std::string message) {
 }
 
 Value *IRGenerator::genNumExp(NumExp exp) {
-    return ConstantInt::get(globalContext, APInt(64, exp.value));
+    return ConstantInt::get(module->getContext(), APInt(64, exp.value));
 }
 
 Value *IRGenerator::genVarExp(VarExp exp) {
@@ -48,18 +108,27 @@ Value *IRGenerator::genVarExp(VarExp exp) {
 }
 
 Value *IRGenerator::genLetExp(LetExp exp) {
-    return nullptr;
+    auto v = genExp(exp.binding);
+    if (!v) return nullptr;
+    
+    auto function = builder.GetInsertBlock()->getParent();
+    if (!function) {
+        return nullptr;
+    }
+    
+    namedValues[exp.name] = v;
+    return v;
 }
 
 Value *IRGenerator::genFunc(std::shared_ptr<UserFunc> func) {
-    std::vector<Type *> types(func->arity(), Type::getInt64Ty(globalContext));
-    auto ftype = FunctionType::get(Type::getInt64Ty(globalContext), types, false);
+    std::vector<Type *> types(func->arity(), Type::getInt64Ty(module->getContext()));
+    auto ftype = FunctionType::get(Type::getInt64Ty(module->getContext()), types, false);
     auto f = Function::Create(ftype, Function::ExternalLinkage, func->name, module);
     unsigned idx = 0;
     for (auto &arg: f->args()) {
         arg.setName(func->args[idx++]);
     }
-    auto bb = BasicBlock::Create(globalContext, "entry", f);
+    auto bb = BasicBlock::Create(module->getContext(), "entry", f);
     builder.SetInsertPoint(bb);
     namedValues.clear();
     
@@ -70,15 +139,30 @@ Value *IRGenerator::genFunc(std::shared_ptr<UserFunc> func) {
     if (Value *ret = genExp(func->body)) {
         builder.CreateRet(ret);
         verifyFunction(*f);
-        passManager->run(*f);
+        if (optimized) passManager->run(*f);
         return f;
     }
     f->eraseFromParent();
     return nullptr;
 }
 
+llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<Exp>> exps) {
+    auto ftype = FunctionType::get(Type::getInt64Ty(module->getContext()), false);
+    auto f = Function::Create(ftype, Function::ExternalLinkage, "main", module);
+    auto bb = BasicBlock::Create(module->getContext(), "entry", f);
+    builder.SetInsertPoint(bb);
+    namedValues.clear();
+    for (auto &exp: exps) {
+        genExp(exp);
+    }
+    builder.CreateRet(Constant::getNullValue(Type::getInt64Ty(module->getContext())));
+    verifyFunction(*f);
+    if (optimized) passManager->run(*f);
+    return f;
+}
+
 Value *IRGenerator::i64Cast(Value *v) {
-    return builder.CreateIntCast(v, Type::getInt64Ty(globalContext), true);
+    return builder.CreateIntCast(v, Type::getInt64Ty(module->getContext()), true);
 }
 
 Value *IRGenerator::genFunCallExp(FunCallExp exp) {
@@ -118,11 +202,11 @@ Value *IRGenerator::genFunCallExp(FunCallExp exp) {
         }
         auto cond = genExp(exp.args[0]);
         if (!cond) return nullptr;
-        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(globalContext, APInt(cond->getType()->getScalarSizeInBits(), 0)), "ifcond");
+        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(cond->getType()->getScalarSizeInBits(), 0)), "ifcond");
         auto f = builder.GetInsertBlock()->getParent();
-        auto thenbb = BasicBlock::Create(globalContext, "then", f);
-        auto elsebb = BasicBlock::Create(globalContext, "else");
-        auto mergebb = BasicBlock::Create(globalContext, "ifcont");
+        auto thenbb = BasicBlock::Create(module->getContext(), "then", f);
+        auto elsebb = BasicBlock::Create(module->getContext(), "else");
+        auto mergebb = BasicBlock::Create(module->getContext(), "ifcont");
         builder.CreateCondBr(cmp, thenbb, elsebb);
         builder.SetInsertPoint(thenbb);
         

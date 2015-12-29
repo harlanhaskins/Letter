@@ -10,6 +10,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include "Exp.hpp"
+#include "Func.hpp"
 #include "Parser.hpp"
 #include "Analyzer.hpp"
 #include "IRGenerator.hpp"
@@ -61,6 +63,7 @@ int main(int argc, const char * argv[]) {
         std::vector<std::string> reasons = funcAnalyzer.analyze(func);
         if (reasons.empty()) {
             generator.genFunc(func);
+            std::cout << func->dump() << std::endl;
         } else {
             for (auto &reason: reasons) {
                 std::cout << "Warning: " << reason << std::endl;
@@ -71,13 +74,14 @@ int main(int argc, const char * argv[]) {
     for (auto &exp : exps) {
         std::vector<std::string> reasons = expAnalyzer.analyze(exp);
         if (reasons.empty()) {
-//            generator.genExp(exp);
+            std::cout << exp->dump() << std::endl;
         } else {
             for (auto &reason: reasons) {
                 std::cout << "Warning: " << reason << std::endl;
             }
         }
     }
+    generator.genMainFunc(exps);
     generator.module->dump();
     return 0;
 }
