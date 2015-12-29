@@ -40,9 +40,13 @@ Env defaultEnv() {
     return env;
 }
 
+void usage(const char *progName) {
+    std::cerr << "Usage: " << progName << " [FILE]" << std::endl;
+}
+
 int main(int argc, const char * argv[]) {
     if (argc < 2) {
-        std::cerr << "You must specify a Letter file.\n";
+        usage(argv[0]);
         return EXIT_FAILURE;
     }
     std::ifstream file(argv[1], std::iostream::binary | std::iostream::ate);

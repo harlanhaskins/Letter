@@ -33,14 +33,10 @@ public:
         // Set up the optimizer pipeline.
         this->passManager->add(createBasicAliasAnalysisPass());
         this->passManager->add(createInstructionCombiningPass());
-        // Promote allocas to registers.
         this->passManager->add(createPromoteMemoryToRegisterPass());
-        // Do simple "peephole" optimizations and bit-twiddling optzns.
-        // Reassociate expressions.
         this->passManager->add(createReassociatePass());
-        // Eliminate Common SubExpressions.
         this->passManager->add(createGVNPass());
-        // Simplify the control flow graph (deleting unreachable blocks, etc).
+        this->passManager->add(createTailCallEliminationPass());
         this->passManager->add(createCFGSimplificationPass());
         this->passManager->doInitialization();
         
