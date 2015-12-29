@@ -30,9 +30,12 @@ public:
         this->module = new Module(moduleName, getGlobalContext());
         this->passManager = new legacy::FunctionPassManager(module);
         
+        // Set up the optimizer pipeline.
         this->passManager->add(createBasicAliasAnalysisPass());
-        // Do simple "peephole" optimizations and bit-twiddling optzns.
         this->passManager->add(createInstructionCombiningPass());
+        // Promote allocas to registers.
+        this->passManager->add(createPromoteMemoryToRegisterPass());
+        // Do simple "peephole" optimizations and bit-twiddling optzns.
         // Reassociate expressions.
         this->passManager->add(createReassociatePass());
         // Eliminate Common SubExpressions.
@@ -53,7 +56,7 @@ public:
 private:
     legacy::FunctionPassManager *passManager;
     llvm::IRBuilder<> builder;
-    std::map<std::string, llvm::Value*> namedValues;
+    std::map<std::string, llvm::AllocaInst*> namedValues;
     void genBuiltins();
     llvm::Value * genPrintf();
     llvm::Value *error(std::string message);
@@ -62,6 +65,9 @@ private:
     llvm::Value *genLetExp(LetExp exp);
     llvm::Value *genFunCallExp(FunCallExp exp);
     llvm::Value *i64Cast(llvm::Value *v);
+    llvm::AllocaInst *createEntryBlockAlloca(Function *f,
+                                             const std::string &name);
+    void createArgumentAllocas(std::vector<std::string> args, Function *f);
 };
 
 #endif /* IRGenerator_hpp */

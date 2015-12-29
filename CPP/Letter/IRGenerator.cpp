@@ -33,10 +33,10 @@ void IRGenerator::genBuiltins() {
     auto printType = FunctionType::get(Type::getInt64Ty(module->getContext()), types, true);
     auto func = Function::Create(printType, Function::ExternalLinkage, "print", module);
     namedValues.clear();
+    
     Value *firstArg = nullptr;
     for (auto &arg: func->args()) {
         arg.setName("arg");
-        namedValues[arg.getName()] = &arg;
         firstArg = &arg;
     }
     
@@ -53,13 +53,29 @@ void IRGenerator::genBuiltins() {
     builder.SetInsertPoint(bb);
     
     if (printf) {
-        std::vector<Value *> args { printfFormat, namedValues["arg"] };
+        std::vector<Value *> args { printfFormat, firstArg };
         builder.CreateCall(printf, args, "calltmp");
         builder.CreateRet(firstArg);
         verifyFunction(*func);
         if (optimized) passManager->run(*func);
     } else {
         func->eraseFromParent();
+    }
+}
+
+/// CreateArgumentAllocas - Create an alloca for each argument and register the
+/// argument in the symbol table so that references to it will succeed.
+void IRGenerator::createArgumentAllocas(std::vector<std::string> args, Function *f) {
+    Function::arg_iterator iter = f->arg_begin();
+    for (int i = 0, e = args.size(); i != e; ++i, ++iter) {
+        // Create an alloca for this variable.
+        AllocaInst *alloca = createEntryBlockAlloca(f, args[i]);
+        
+        // Store the initial value into the alloca.
+        builder.CreateStore(iter, alloca);
+        
+        // Add arguments to variable symbol table.
+        namedValues[args[i]] = alloca;
     }
 }
 
@@ -104,20 +120,32 @@ Value *IRGenerator::genVarExp(VarExp exp) {
     // Look this variable up in the function.
     Value *v = namedValues[exp.name];
     if (!v) error("Unknown variable name \"" + exp.name + "\"");
-    return v;
+    return builder.CreateLoad(v, exp.name);
 }
 
 Value *IRGenerator::genLetExp(LetExp exp) {
+    
+    Function *function = builder.GetInsertBlock()->getParent();
+    
     auto v = genExp(exp.binding);
     if (!v) return nullptr;
     
-    auto function = builder.GetInsertBlock()->getParent();
-    if (!function) {
-        return nullptr;
+    AllocaInst *curr = namedValues[exp.name];
+    if (!curr) {
+        curr = createEntryBlockAlloca(function, exp.name);
+        namedValues[exp.name] = curr;
     }
+    builder.CreateStore(v, curr);
     
-    namedValues[exp.name] = v;
     return v;
+}
+
+AllocaInst *IRGenerator::createEntryBlockAlloca(Function *f,
+                                          const std::string &name) {
+    IRBuilder<> tmpBuilder(&f->getEntryBlock(),
+                     f->getEntryBlock().begin());
+    return tmpBuilder.CreateAlloca(Type::getInt64Ty(module->getContext()), 0,
+                             name.c_str());
 }
 
 Value *IRGenerator::genFunc(std::shared_ptr<UserFunc> func) {
@@ -131,10 +159,7 @@ Value *IRGenerator::genFunc(std::shared_ptr<UserFunc> func) {
     auto bb = BasicBlock::Create(module->getContext(), "entry", f);
     builder.SetInsertPoint(bb);
     namedValues.clear();
-    
-    for (auto &arg : f->args()) {
-        namedValues[arg.getName()] = &arg;
-    }
+    createArgumentAllocas(func->args, f);
     
     if (Value *ret = genExp(func->body)) {
         builder.CreateRet(ret);
