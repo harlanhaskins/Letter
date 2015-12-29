@@ -22,73 +22,73 @@ public:
   typedef CompileLayerT::ModuleSetHandleT ModuleHandleT;
 
   LetterJIT()
-      : TM(EngineBuilder().selectTarget()), DL(TM->createDataLayout()),
-        CompileLayer(ObjectLayer, llvm::orc::SimpleCompiler(*TM)) {
+      : targetMachine(EngineBuilder().selectTarget()), dataLayout(targetMachine->createDataLayout()),
+        compileLayer(objectLayer, llvm::orc::SimpleCompiler(*targetMachine)) {
     llvm::sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
   }
 
-  TargetMachine &getTargetMachine() { return *TM; }
+  TargetMachine &getTargetMachine() { return *targetMachine; }
 
-  ModuleHandleT addModule(std::unique_ptr<Module> M) {
+  ModuleHandleT addModule(std::unique_ptr<Module> module) {
 
-    auto Resolver = llvm::orc::createLambdaResolver(
-        [&](const std::string &Name) {
-          if (auto Sym = findMangledSymbol(Name))
-            return RuntimeDyld::SymbolInfo(Sym.getAddress(), Sym.getFlags());
+    auto resolver = llvm::orc::createLambdaResolver(
+        [&](const std::string &name) {
+          if (auto sym = findMangledSymbol(name))
+            return RuntimeDyld::SymbolInfo(sym.getAddress(), sym.getFlags());
           return RuntimeDyld::SymbolInfo(nullptr);
         },
         [](const std::string &S) { return nullptr; });
-    auto H = CompileLayer.addModuleSet(singletonSet(std::move(M)),
+    auto handle = compileLayer.addModuleSet(singletonSet(std::move(module)),
                                        make_unique<SectionMemoryManager>(),
-                                       std::move(Resolver));
+                                       std::move(resolver));
 
-    ModuleHandles.push_back(H);
-    return H;
+    moduleHandles.push_back(handle);
+    return handle;
   }
 
   void removeModule(ModuleHandleT H) {
-    ModuleHandles.erase(
-        std::find(ModuleHandles.begin(), ModuleHandles.end(), H));
-    CompileLayer.removeModuleSet(H);
+    moduleHandles.erase(
+        std::find(moduleHandles.begin(), moduleHandles.end(), H));
+    compileLayer.removeModuleSet(H);
   }
 
-  llvm::orc::JITSymbol findSymbol(const std::string Name) {
-    return findMangledSymbol(mangle(Name));
+  llvm::orc::JITSymbol findSymbol(const std::string name) {
+    return findMangledSymbol(mangle(name));
   }
 
 private:
 
-  std::string mangle(const std::string &Name) {
-    std::string MangledName;
+  std::string mangle(const std::string &name) {
+    std::string mangledName;
     {
-      raw_string_ostream MangledNameStream(MangledName);
-      Mangler::getNameWithPrefix(MangledNameStream, Name, DL);
+      raw_string_ostream mangledNameStream(mangledName);
+      Mangler::getNameWithPrefix(mangledNameStream, name, dataLayout);
     }
-    return MangledName;
+    return mangledName;
   }
 
   template <typename T> static std::vector<T> singletonSet(T t) {
-    std::vector<T> Vec;
-    Vec.push_back(std::move(t));
-    return Vec;
+    std::vector<T> vec;
+    vec.push_back(std::move(t));
+    return vec;
   }
 
-    llvm::orc::JITSymbol findMangledSymbol(const std::string &Name) {
-    for (auto H : make_range(ModuleHandles.rbegin(), ModuleHandles.rend()))
-      if (auto Sym = CompileLayer.findSymbolIn(H, Name, true))
-        return Sym;
+    llvm::orc::JITSymbol findMangledSymbol(const std::string &name) {
+    for (auto &handle : make_range(moduleHandles.rbegin(), moduleHandles.rend()))
+      if (auto sym = compileLayer.findSymbolIn(handle, name, true))
+        return sym;
 
-    if (auto SymAddr = RTDyldMemoryManager::getSymbolAddressInProcess(Name))
-      return llvm::orc::JITSymbol(SymAddr, JITSymbolFlags::Exported);
+    if (auto symAddr = RTDyldMemoryManager::getSymbolAddressInProcess(name))
+      return llvm::orc::JITSymbol(symAddr, JITSymbolFlags::Exported);
 
     return nullptr;
   }
 
-  std::unique_ptr<TargetMachine> TM;
-  const DataLayout DL;
-  ObjLayerT ObjectLayer;
-  CompileLayerT CompileLayer;
-  std::vector<ModuleHandleT> ModuleHandles;
+  std::unique_ptr<TargetMachine> targetMachine;
+  const DataLayout dataLayout;
+  ObjLayerT objectLayer;
+  CompileLayerT compileLayer;
+  std::vector<ModuleHandleT> moduleHandles;
 };
 
 #endif // LetterJIT_h

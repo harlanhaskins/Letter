@@ -63,6 +63,8 @@ void IRGenerator::genBuiltins() {
 }
 
 int64_t IRGenerator::execute() {
+    InitializeNativeTarget();
+    InitializeNativeTargetAsmPrinter();
     LetterJIT jit = LetterJIT();
     this->module->setDataLayout(jit.getTargetMachine().createDataLayout());
     jit.addModule(std::move(this->module));
