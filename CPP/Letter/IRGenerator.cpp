@@ -57,6 +57,92 @@ void IRGenerator::genBuiltins() {
     builtins["mod"] = std::make_shared<BuiltinFunc>("mod", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
         return i64Cast(builder.CreateURem(args[0]->codegen(*this), args[1]->codegen(*this), "modtmp"));
     });
+    builtins["if"] = std::make_shared<BuiltinFunc>("if", 3, [this](std::vector<std::shared_ptr<Exp>> args) {
+        auto cond = args[0]->codegen(*this);
+        if (!cond) return (Value *)nullptr;
+        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(cond->getType()->getScalarSizeInBits(), 0)), "ifcond");
+        auto f = builder.GetInsertBlock()->getParent();
+        auto thenbb = BasicBlock::Create(module->getContext(), "then", f);
+        auto elsebb = BasicBlock::Create(module->getContext(), "else");
+        auto mergebb = BasicBlock::Create(module->getContext(), "ifcont");
+        builder.CreateCondBr(cmp, thenbb, elsebb);
+        builder.SetInsertPoint(thenbb);
+        
+        auto then = args[1]->codegen(*this);
+        if (!then) return (Value *)nullptr;
+        builder.CreateBr(mergebb);
+        thenbb = builder.GetInsertBlock();
+        
+        f->getBasicBlockList().push_back(elsebb);
+        builder.SetInsertPoint(elsebb);
+        
+        auto elsev = args[2]->codegen(*this);
+        
+        if (!elsev) return (Value *)nullptr;
+        
+        builder.CreateBr(mergebb);
+        elsebb = builder.GetInsertBlock();
+        
+        // Emit merge block.
+        f->getBasicBlockList().push_back(mergebb);
+        builder.SetInsertPoint(mergebb);
+        PHINode *phi =
+        builder.CreatePHI(then->getType(), 2, "iftmp");
+        
+        phi->addIncoming(then, thenbb);
+        phi->addIncoming(elsev, elsebb);
+        return (Value *)phi;
+    });
+    
+    builtins["do"] = std::make_shared<BuiltinFunc>("do", -1, [this](std::vector<std::shared_ptr<Exp>> args) {
+        auto parent = builder.GetInsertBlock()->getParent();
+        if (!parent) {
+            recordError("No parent for `do` block.");
+            return (Value *)nullptr;
+        }
+        auto res = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), nullptr, "dores");
+        auto bb = BasicBlock::Create(module->getContext(), "do", parent);
+        auto doretbb = BasicBlock::Create(module->getContext(), "doret");
+        builder.CreateBr(bb);
+        builder.SetInsertPoint(bb);
+        auto oldBindings = namedValues;
+        for (int i = 0; i < args.size() - 1; i++) {
+            if (!args[i]->codegen(*this)) return (Value *)nullptr;
+        }
+        builder.CreateBr(doretbb);
+        parent->getBasicBlockList().push_back(doretbb);
+        bb = builder.GetInsertBlock();
+        builder.SetInsertPoint(doretbb);
+        Value *ret = args.back()->codegen(*this);
+        if (!ret) return (Value *)nullptr;
+        builder.CreateStore(ret, res);
+        namedValues = oldBindings;
+        return ret;
+    });
+    
+    builtins["let"] = std::make_shared<BuiltinFunc>("let", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        auto v = args[1]->codegen(*this);
+        if (!v) return (Value *)nullptr;
+        
+        VarExp *var = dynamic_cast<VarExp *>(&*args[0]);
+        if (!var) {
+            recordError("First argument to 'let' must be a variable.");
+            return (Value *)nullptr;
+        }
+        
+        AllocaInst *curr = namedValues[var->name];
+        if (!curr) {
+            curr = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), 0, var->name);
+            namedValues[var->name] = curr;
+        }
+        builder.CreateStore(v, curr);
+        
+        return v;
+    });
+    
+//    builtins["while"] = std::make_shared<BuiltinFunc>("while", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+//        
+//    });
 
     auto printf = genPrintf();
     

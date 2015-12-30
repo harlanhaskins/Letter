@@ -172,7 +172,7 @@ shared_ptr<Exp> Parser::parseFunCall() {
         exps.push_back(move(exp));
         seekToNextToken();
     }
-    return FunCallExp::create(funcName, exps);
+    return make_shared<FunCallExp>(funcName, exps);
 }
 
 shared_ptr<Exp> Parser::error(string msg) {
