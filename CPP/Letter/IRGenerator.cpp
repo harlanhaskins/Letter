@@ -54,6 +54,9 @@ void IRGenerator::genBuiltins() {
     builtins["="] = std::make_shared<BuiltinFunc>("=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
         return i64Cast(builder.CreateICmpEQ(args[0]->codegen(*this), args[1]->codegen(*this), "eqtmp"));
     });
+    builtins["!="] = std::make_shared<BuiltinFunc>("=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return i64Cast(builder.CreateICmpNE(args[0]->codegen(*this), args[1]->codegen(*this), "netmp"));
+    });
     builtins["mod"] = std::make_shared<BuiltinFunc>("mod", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
         return i64Cast(builder.CreateURem(args[0]->codegen(*this), args[1]->codegen(*this), "modtmp"));
     });
