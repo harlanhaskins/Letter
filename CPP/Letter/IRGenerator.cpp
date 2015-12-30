@@ -143,9 +143,30 @@ void IRGenerator::genBuiltins() {
         return v;
     });
     
-//    builtins["while"] = std::make_shared<BuiltinFunc>("while", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-//        
-//    });
+    builtins["while"] = std::make_shared<BuiltinFunc>("while", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        auto f = builder.GetInsertBlock()->getParent();
+        if (!f) {
+            recordError("No parent for `while` loop.");
+            return (Value *)nullptr;
+        }
+        auto whilebb = BasicBlock::Create(module->getContext(), "while", f);
+        auto bodybb = BasicBlock::Create(module->getContext(), "whilebody");
+        auto endbb = BasicBlock::Create(module->getContext(), "whileend");
+        builder.CreateBr(whilebb);
+        builder.SetInsertPoint(whilebb);
+        auto cond = args[0]->codegen(*this);
+        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(cond->getType()->getScalarSizeInBits(), 0)), "whilecond");
+        builder.CreateCondBr(cmp, bodybb, endbb);
+        f->getBasicBlockList().push_back(bodybb);
+        whilebb = builder.GetInsertBlock();
+        builder.SetInsertPoint(bodybb);
+        args[1]->codegen(*this);
+        builder.CreateBr(whilebb);
+        f->getBasicBlockList().push_back(endbb);
+        builder.SetInsertPoint(endbb);
+        Value *v = ConstantInt::get(Type::getInt64Ty(module->getContext()), 0);
+        return v;
+    });
 
     auto printf = genPrintf();
     
