@@ -12,8 +12,6 @@
 		DCAEE1341C2C692700B5AB97 /* Func.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE1321C2C692700B5AB97 /* Func.cpp */; };
 		DCAEE1371C2C8C7600B5AB97 /* Parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */; };
 		DCCE95E71C3319CA00FA0513 /* libLLVM-3.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */; };
-		DCD0BC791C2FC40500C12405 /* Analyzer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BC771C2FC40500C12405 /* Analyzer.cpp */; };
-		DCD0BC7C1C2FC50600C12405 /* Env.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BC7A1C2FC50600C12405 /* Env.cpp */; };
 		DCD0BEEE1C30E2DF00C12405 /* IRGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BEEC1C30E2DF00C12405 /* IRGenerator.cpp */; };
 		DCD0BEF01C30E7BC00C12405 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEEF1C30E7BC00C12405 /* libcurses.tbd */; };
 /* End PBXBuildFile section */
@@ -41,10 +39,6 @@
 		DCAEE1361C2C8C7600B5AB97 /* Parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Parser.hpp; sourceTree = "<group>"; };
 		DCCE95DD1C33150500FA0513 /* LetterJIT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LetterJIT.h; sourceTree = "<group>"; };
 		DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libLLVM-3.7.dylib"; path = "../../../../../../../usr/local/Cellar/llvm37/3.7.0/lib/llvm-3.7/lib/libLLVM-3.7.dylib"; sourceTree = "<group>"; };
-		DCD0BC771C2FC40500C12405 /* Analyzer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Analyzer.cpp; sourceTree = "<group>"; };
-		DCD0BC781C2FC40500C12405 /* Analyzer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Analyzer.hpp; sourceTree = "<group>"; };
-		DCD0BC7A1C2FC50600C12405 /* Env.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Env.cpp; sourceTree = "<group>"; };
-		DCD0BC7B1C2FC50600C12405 /* Env.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Env.hpp; sourceTree = "<group>"; };
 		DCD0BEEC1C30E2DF00C12405 /* IRGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IRGenerator.cpp; sourceTree = "<group>"; };
 		DCD0BEED1C30E2DF00C12405 /* IRGenerator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = IRGenerator.hpp; sourceTree = "<group>"; };
 		DCD0BEEF1C30E7BC00C12405 /* libcurses.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurses.tbd; path = usr/lib/libcurses.tbd; sourceTree = SDKROOT; };
@@ -85,10 +79,6 @@
 			isa = PBXGroup;
 			children = (
 				DCCE95DD1C33150500FA0513 /* LetterJIT.h */,
-				DCD0BC771C2FC40500C12405 /* Analyzer.cpp */,
-				DCD0BC781C2FC40500C12405 /* Analyzer.hpp */,
-				DCD0BC7A1C2FC50600C12405 /* Env.cpp */,
-				DCD0BC7B1C2FC50600C12405 /* Env.hpp */,
 				DCAEE12F1C2C65CD00B5AB97 /* Exp.cpp */,
 				DCAEE1301C2C65CD00B5AB97 /* Exp.hpp */,
 				DCAEE1321C2C692700B5AB97 /* Func.cpp */,
@@ -158,10 +148,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DCD0BC791C2FC40500C12405 /* Analyzer.cpp in Sources */,
 				DCAEE1371C2C8C7600B5AB97 /* Parser.cpp in Sources */,
 				DCAEE1341C2C692700B5AB97 /* Func.cpp in Sources */,
-				DCD0BC7C1C2FC50600C12405 /* Env.cpp in Sources */,
 				DCAEE1311C2C65CD00B5AB97 /* Exp.cpp in Sources */,
 				DCD0BEEE1C30E2DF00C12405 /* IRGenerator.cpp in Sources */,
 				DCAEDEC21C2C582E00B5AB97 /* main.cpp in Sources */,

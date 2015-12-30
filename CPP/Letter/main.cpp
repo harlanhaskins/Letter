@@ -13,34 +13,10 @@
 #include "Exp.hpp"
 #include "Func.hpp"
 #include "Parser.hpp"
-#include "Analyzer.hpp"
 #include "IRGenerator.hpp"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/CommandLine.h"
 #include "LetterJIT.h"
-
-Env defaultEnv() {
-    Env env;
-    env.addFunc(std::make_shared<BuiltinFunc>("+", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("-", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("*", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("/", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("min", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("max", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("=", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("<", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>(">", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("<=", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>(">=", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("if", 3));
-    env.addFunc(std::make_shared<BuiltinFunc>("print", 1));
-    env.addFunc(std::make_shared<BuiltinFunc>("and", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("or", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("not", 1));
-    env.addFunc(std::make_shared<BuiltinFunc>("mod", 2));
-    env.addFunc(std::make_shared<BuiltinFunc>("do", INFINITE_ARITY));
-    return env;
-}
 
 cl::opt<std::string> filename(cl::Positional, cl::desc("<input file>"), cl::Required);
 cl::opt<bool> emitAST("emit-ast", cl::desc("Emit the AST to stdout"));
@@ -68,15 +44,21 @@ int main(int argc, const char * argv[]) {
             std::cout << exp->dump() << std::endl;
         }
     } else {
-        IRGenerator generator(argv[1], optim);
+        IRGenerator generator(filename, optim);
         for (auto &func : funcs) {
-            generator.genFunc(func);
+            func->codegen(generator);
         }
         generator.genMainFunc(exps);
-        if (emitIR) {
-            generator.module->print(llvm::outs(), nullptr);
+        if (generator.errors.empty()) {
+            if (emitIR) {
+                generator.module->print(llvm::outs(), nullptr);
+            } else {
+                generator.execute();
+            }
         } else {
-            generator.execute();
+            for (auto &error: generator.errors) {
+                std::cerr << error << std::endl;
+            }
         }
     }
     return 0;

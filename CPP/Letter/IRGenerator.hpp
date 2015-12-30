@@ -26,7 +26,11 @@
 class IRGenerator {
 public:
     std::unique_ptr<llvm::Module> module;
+    llvm::IRBuilder<> builder;
+    std::map<std::string, std::shared_ptr<BuiltinFunc>> builtins;
+    std::map<std::string, llvm::AllocaInst*> namedValues;
     bool optimized;
+    std::vector<std::string> errors;
     IRGenerator(std::string moduleName, bool optimized): optimized(optimized), builder(getGlobalContext()) {
         
         this->module = std::make_unique<Module>(moduleName, getGlobalContext());
@@ -44,27 +48,26 @@ public:
         
         this->genBuiltins();
     };
+    llvm::AllocaInst *lookupBinding(std::string name);
+    void addBinding(std::string name, llvm::AllocaInst *inst);
+    void addFunction(Function *function);
+    void recordError(std::string error);
     llvm::Value *genExp(std::shared_ptr<Exp> exp);
     llvm::Value *genFunc(std::shared_ptr<UserFunc> func);
     llvm::Value *genMainFunc(std::vector<std::shared_ptr<Exp>> exps);
+    llvm::AllocaInst *createEntryBlockAlloca(Function *f,
+                                             const std::string &name);
+    void createArgumentAllocas(std::vector<std::string> args, Function *f);
     int64_t execute();
 private:
     std::unique_ptr<legacy::FunctionPassManager> passManager;
-    llvm::IRBuilder<> builder;
-    std::map<std::string, llvm::AllocaInst*> namedValues;
     void genBuiltins();
     void printBindings();
     llvm::Value * genPrintf();
     llvm::Value *error(std::string message);
-    llvm::Value *genNumExp(NumExp exp);
-    llvm::Value *genVarExp(VarExp exp);
-    llvm::Value *genLetExp(LetExp exp);
     llvm::Value *genDoFunc(FunCallExp exp, Function *parent);
     llvm::Value *genFunCallExp(FunCallExp exp);
     llvm::Value *i64Cast(llvm::Value *v);
-    llvm::AllocaInst *createEntryBlockAlloca(Function *f,
-                                             const std::string &name);
-    void createArgumentAllocas(std::vector<std::string> args, Function *f);
 };
 
 #endif /* IRGenerator_hpp */

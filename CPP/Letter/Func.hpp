@@ -16,6 +16,8 @@
 
 const auto INFINITE_ARITY = -1;
 
+class IRGenerator;
+
 class Func {
 public:
     std::string name;
@@ -31,6 +33,7 @@ public:
         this->name = name;
     }
     virtual std::string dump(std::string indent = "");
+    Value *codegen(IRGenerator &gen);
     virtual int arity();
 };
 
@@ -38,11 +41,14 @@ class BuiltinFunc: public Func {
 private:
     int _arity;
 public:
-    BuiltinFunc(std::string name, int arity) {
+    std::function<Value *(std::vector<std::shared_ptr<Exp>> args)> codegenBlock;
+    BuiltinFunc(std::string name, int arity, std::function<Value *(std::vector<std::shared_ptr<Exp>> args)> codegenBlock) {
         this->_arity = arity;
         this->name = name;
+        this->codegenBlock = codegenBlock;
     }
     virtual std::string dump(std::string indent = "");
+    Value *codegenCall(std::vector<std::shared_ptr<Exp>> &args);
     virtual int arity();
 };
 

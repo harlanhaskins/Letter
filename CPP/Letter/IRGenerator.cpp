@@ -27,6 +27,37 @@ Constant *globalStringPtr(Module *m, std::string value) {
 }
 
 void IRGenerator::genBuiltins() {
+    builtins["+"] = std::make_shared<BuiltinFunc>("+", 2, [this](std::vector<std::shared_ptr<Exp>> args){
+        return this->builder.CreateAdd(args[0]->codegen(*this), args[1]->codegen(*this), "addtmp");
+    });
+    builtins["*"] = std::make_shared<BuiltinFunc>("*", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return builder.CreateMul(args[0]->codegen(*this), args[1]->codegen(*this), "multmp");
+    });
+    builtins["-"] = std::make_shared<BuiltinFunc>("-", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return builder.CreateSub(args[0]->codegen(*this), args[1]->codegen(*this), "subtmp");
+    });
+    builtins["/"] = std::make_shared<BuiltinFunc>("/", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return i64Cast(builder.CreateUDiv(args[0]->codegen(*this), args[1]->codegen(*this), "divtmp"));
+    });
+    builtins["<"] = std::make_shared<BuiltinFunc>("<", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return i64Cast(builder.CreateICmpSLT(args[0]->codegen(*this), args[1]->codegen(*this), "lttmp"));
+    });
+    builtins[">"] = std::make_shared<BuiltinFunc>(">", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return i64Cast(builder.CreateICmpSGT(args[0]->codegen(*this), args[1]->codegen(*this), "gttmp"));
+    });
+    builtins[">="] = std::make_shared<BuiltinFunc>(">=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return i64Cast(builder.CreateICmpSGE(args[0]->codegen(*this), args[1]->codegen(*this), "getmp"));
+    });
+    builtins["<="] = std::make_shared<BuiltinFunc>("<=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return i64Cast(builder.CreateICmpSLE(args[0]->codegen(*this), args[1]->codegen(*this), "letmp"));
+    });
+    builtins["="] = std::make_shared<BuiltinFunc>("=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return i64Cast(builder.CreateICmpEQ(args[0]->codegen(*this), args[1]->codegen(*this), "eqtmp"));
+    });
+    builtins["mod"] = std::make_shared<BuiltinFunc>("mod", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+        return i64Cast(builder.CreateURem(args[0]->codegen(*this), args[1]->codegen(*this), "modtmp"));
+    });
+
     auto printf = genPrintf();
     
     std::vector<Type *> types { Type::getInt64Ty(module->getContext()) };
@@ -101,54 +132,16 @@ llvm::Value *IRGenerator::genPrintf() {
     return f;
 }
 
-Value *IRGenerator::genExp(std::shared_ptr<Exp> exp) {
-    auto funCallExp = dynamic_cast<FunCallExp *>(&*exp);
-    if (funCallExp) {
-        return genFunCallExp(*funCallExp);
-    }
-    auto numExp = dynamic_cast<NumExp *>(&*exp);
-    if (numExp) {
-        return genNumExp(*numExp);
-    }
-    auto varExp = dynamic_cast<VarExp *>(&*exp);
-    if (varExp) {
-        return genVarExp(*varExp);
-    }
-    auto letExp = dynamic_cast<LetExp *>(&*exp);
-    if (letExp) {
-        return genLetExp(*letExp);
-    }
-    return error("Unknown expression type");
+void IRGenerator::recordError(std::string error) {
+    errors.push_back(error);
 }
 
-Value *IRGenerator::error(std::string message) {
-    std::cerr << message << std::endl;
-    return nullptr;
+void IRGenerator::addBinding(std::string name, AllocaInst *inst) {
+    namedValues[name] = inst;
 }
 
-Value *IRGenerator::genNumExp(NumExp exp) {
-    return ConstantInt::get(module->getContext(), APInt(64, exp.value));
-}
-
-Value *IRGenerator::genVarExp(VarExp exp) {
-    // Look this variable up in the function.
-    Value *v = namedValues[exp.name];
-    if (!v) error("Unknown variable name \"" + exp.name + "\"");
-    return builder.CreateLoad(v, exp.name);
-}
-
-Value *IRGenerator::genLetExp(LetExp exp) {
-    auto v = genExp(exp.binding);
-    if (!v) return nullptr;
-    
-    AllocaInst *curr = namedValues[exp.name];
-    if (!curr) {
-        curr = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), 0, exp.name);
-        namedValues[exp.name] = curr;
-    }
-    builder.CreateStore(v, curr);
-    
-    return v;
+AllocaInst *IRGenerator::lookupBinding(std::string name) {
+    return namedValues[name];
 }
 
 AllocaInst *IRGenerator::createEntryBlockAlloca(Function *f,
@@ -159,27 +152,11 @@ AllocaInst *IRGenerator::createEntryBlockAlloca(Function *f,
                              name.c_str());
 }
 
-Value *IRGenerator::genFunc(std::shared_ptr<UserFunc> func) {
-    std::vector<Type *> types(func->arity(), Type::getInt64Ty(module->getContext()));
-    auto ftype = FunctionType::get(Type::getInt64Ty(module->getContext()), types, false);
-    auto f = Function::Create(ftype, Function::ExternalLinkage, func->name, module.get());
-    unsigned idx = 0;
-    for (auto &arg: f->args()) {
-        arg.setName(func->args[idx++]);
+void IRGenerator::addFunction(Function *function) {
+    verifyFunction(*function);
+    if (optimized) {
+        passManager->run(*function);
     }
-    auto bb = BasicBlock::Create(module->getContext(), "entry", f);
-    builder.SetInsertPoint(bb);
-    namedValues.clear();
-    createArgumentAllocas(func->args, f);
-    
-    if (Value *ret = genExp(func->body)) {
-        builder.CreateRet(ret);
-        verifyFunction(*f);
-        if (optimized) passManager->run(*f);
-        return f;
-    }
-    f->eraseFromParent();
-    return nullptr;
 }
 
 llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<Exp>> exps) {
@@ -189,13 +166,10 @@ llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<Exp>> exps) {
     builder.SetInsertPoint(bb);
     namedValues.clear();
     for (auto &exp: exps) {
-        genExp(exp);
+        exp->codegen(*this);
     }
     builder.CreateRet(Constant::getNullValue(Type::getInt64Ty(module->getContext())));
-    verifyFunction(*f);
-    if (optimized) {
-        passManager->run(*f);
-    }
+    addFunction(f);
     return f;
 }
 
@@ -209,115 +183,4 @@ void IRGenerator::printBindings() {
         std::cerr << "    " << iterator->first << ": ";
         iterator->second->dump();
     }
-}
-
-Value *IRGenerator::genDoFunc(FunCallExp exp, Function *parent) {
-    auto res = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), nullptr,"dores");
-    auto bb = BasicBlock::Create(module->getContext(), "do", parent);
-    auto doretbb = BasicBlock::Create(module->getContext(), "doret");
-    builder.CreateBr(bb);
-    builder.SetInsertPoint(bb);
-    auto oldBindings = namedValues;
-    for (int i = 0; i < exp.args.size() - 1; i++) {
-        if (!genExp(exp.args[i])) return nullptr;
-    }
-    builder.CreateBr(doretbb);
-    parent->getBasicBlockList().push_back(doretbb);
-    bb = builder.GetInsertBlock();
-    builder.SetInsertPoint(doretbb);
-    Value *ret = genExp(exp.args.back());
-    if (!ret) return nullptr;
-    builder.CreateStore(ret, res);
-    namedValues = oldBindings;
-    return ret;
-}
-
-Value *IRGenerator::genFunCallExp(FunCallExp exp) {
-    if (exp.func == "+") {
-        return builder.CreateAdd(genExp(exp.args[0]), genExp(exp.args[1]), "addtmp");
-    }
-    if (exp.func == "*") {
-        return builder.CreateMul(genExp(exp.args[0]), genExp(exp.args[1]), "multmp");
-    }
-    if (exp.func == "-") {
-        return builder.CreateSub(genExp(exp.args[0]), genExp(exp.args[1]), "subtmp");
-    }
-    if (exp.func == "/") {
-        return i64Cast(builder.CreateUDiv(genExp(exp.args[0]), genExp(exp.args[1]), "divtmp"));
-    }
-    if (exp.func == "<") {
-        return i64Cast(builder.CreateICmpSLT(genExp(exp.args[0]), genExp(exp.args[1]), "lttmp"));
-    }
-    if (exp.func == ">") {
-        return i64Cast(builder.CreateICmpSGT(genExp(exp.args[0]), genExp(exp.args[1]), "gttmp"));
-    }
-    if (exp.func == ">=") {
-        return i64Cast(builder.CreateICmpSGE(genExp(exp.args[0]), genExp(exp.args[1]), "getmp"));
-    }
-    if (exp.func == "<=") {
-        return i64Cast(builder.CreateICmpSLE(genExp(exp.args[0]), genExp(exp.args[1]), "letmp"));
-    }
-    if (exp.func == "=") {
-        return i64Cast(builder.CreateICmpEQ(genExp(exp.args[0]), genExp(exp.args[1]), "eqtmp"));
-    }
-    if (exp.func == "mod") {
-        return i64Cast(builder.CreateURem(genExp(exp.args[0]), genExp(exp.args[1]), "modtmp"));
-    }
-    if (exp.func == "if") {
-        if (exp.args.size() != 3) {
-            return error("Invalid number of arguments to function " + exp.func + ". Expected 3 got " + std::to_string(exp.args.size()));
-        }
-        auto cond = genExp(exp.args[0]);
-        if (!cond) return nullptr;
-        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(cond->getType()->getScalarSizeInBits(), 0)), "ifcond");
-        auto f = builder.GetInsertBlock()->getParent();
-        auto thenbb = BasicBlock::Create(module->getContext(), "then", f);
-        auto elsebb = BasicBlock::Create(module->getContext(), "else");
-        auto mergebb = BasicBlock::Create(module->getContext(), "ifcont");
-        builder.CreateCondBr(cmp, thenbb, elsebb);
-        builder.SetInsertPoint(thenbb);
-        
-        auto then = genExp(exp.args[1]);
-        if (!then) return nullptr;
-        builder.CreateBr(mergebb);
-        thenbb = builder.GetInsertBlock();
-        
-        f->getBasicBlockList().push_back(elsebb);
-        builder.SetInsertPoint(elsebb);
-        
-        auto elsev = genExp(exp.args[2]);
-        
-        if (!elsev) return nullptr;
-        
-        builder.CreateBr(mergebb);
-        elsebb = builder.GetInsertBlock();
-        
-        // Emit merge block.
-        f->getBasicBlockList().push_back(mergebb);
-        builder.SetInsertPoint(mergebb);
-        PHINode *phi =
-        builder.CreatePHI(then->getType(), 2, "iftmp");
-        
-        phi->addIncoming(then, thenbb);
-        phi->addIncoming(elsev, elsebb);
-        return phi;
-    }
-    if (exp.func == "do") {
-        std::map<std::string, AllocaInst *> oldBindings = namedValues;
-        auto func = builder.GetInsertBlock()->getParent();
-        return genDoFunc(exp, func);
-    }
-    Function *func = module->getFunction(exp.func);
-    if (!func) return error("Unknown function \"" + exp.func + "\"");
-    auto args = exp.args;
-    if (func->arg_size() != args.size()) {
-        return error("Invalid number of arguments to function " + exp.func + ". Expected " + std::to_string(func->arg_size()) + " got " + std::to_string(args.size()));
-    }
-    std::vector<Value *> genArgs;
-    for (auto &arg: exp.args) {
-        auto code = genExp(arg);
-        if (!code) return nullptr;
-        genArgs.push_back(code);
-    }
-    return builder.CreateCall(func, genArgs, "calltmp");
 }

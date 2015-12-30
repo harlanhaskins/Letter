@@ -20,12 +20,15 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
 
+class IRGenerator;
+
 using namespace llvm;
 
 class Exp {
 public:
     virtual ~Exp() {}
     virtual std::string dump(std::string indent = "") = 0;
+    virtual Value *codegen(IRGenerator &gen) = 0;
 };
 
 class NumExp: public Exp {
@@ -33,6 +36,7 @@ public:
     long value;
     NumExp(long value): value(value) {}
     virtual std::string dump(std::string indent = "");
+    virtual Value *codegen(IRGenerator &gen);
 };
 
 class VarExp: public Exp {
@@ -40,22 +44,52 @@ public:
     std::string name;
     VarExp(std::string name): name(name) {}
     virtual std::string dump(std::string indent = "");
+    virtual Value *codegen(IRGenerator &gen);
 };
 
 class FunCallExp: public Exp {
 public:
     std::string func;
     std::vector<std::shared_ptr<Exp>> args;
+    static std::shared_ptr<FunCallExp> create(std::string name, std::vector<std::shared_ptr<Exp>> args);
     FunCallExp(std::string func, std::vector<std::shared_ptr<Exp>> args): func(func), args(args) {}
     virtual std::string dump(std::string indent = "");
+    virtual Value *codegen(IRGenerator &gen);
 };
 
-class LetExp: public Exp {
+class LetExp: public FunCallExp {
 public:
     std::string name;
     std::shared_ptr<Exp> binding;
-    LetExp(std::string name, std::shared_ptr<Exp> binding): name(name), binding(move(binding)) {}
+    LetExp(std::vector<std::shared_ptr<Exp>> args): FunCallExp("let", args) {
+        assert(args.size() == 2);
+        VarExp *var = dynamic_cast<VarExp *>(&*args[0]);
+        assert(var);
+        this->name = var->name;
+        this->binding = args[1];
+    }
     virtual std::string dump(std::string indent = "");
+    virtual Value *codegen(IRGenerator &gen);
+};
+
+class DoExp: public FunCallExp {
+public:
+    DoExp(std::vector<std::shared_ptr<Exp>> args): FunCallExp("do", args) {}
+    virtual Value *codegen(IRGenerator &gen);
+};
+
+class IfExp: public FunCallExp {
+public:
+    std::shared_ptr<Exp> condExp;
+    std::shared_ptr<Exp> thenExp;
+    std::shared_ptr<Exp> elseExp;
+    IfExp(std::vector<std::shared_ptr<Exp>> args): FunCallExp("if", args) {
+        assert(args.size() == 3);
+        this->condExp = args[0];
+        this->thenExp = args[1];
+        this->elseExp = args[2];
+    }
+    virtual Value *codegen(IRGenerator &gen);
 };
 
 #endif /* AST_hpp */

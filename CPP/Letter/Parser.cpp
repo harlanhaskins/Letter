@@ -17,7 +17,6 @@ enum Token {
     EofTok = -1,
     FunDefTok = -2,
     FunCallTok = -3,
-    LetTok = -4,
     NumTok = -5,
     CommaTok = -6,
     IdentifierTok = -7,
@@ -62,8 +61,6 @@ int Parser::gettok() {
         
         if (identifierValue == "def") {
             return FunDefTok;
-        } else if (identifierValue == "let") {
-            return LetTok;
         } else {
             while (isident(currentChar())) {
                 identifierValue += currentChar();
@@ -148,8 +145,6 @@ shared_ptr<Exp> Parser::parseExpression() {
             return parseNumExp();
         case FunCallTok:
             return parseFunCall();
-        case LetTok:
-            return parseLetExp();
         case EofTok:
             return error("Unexpected EOF");
         default: break;
@@ -165,21 +160,6 @@ shared_ptr<Exp> Parser::parseVarLookup() {
     return make_shared<VarExp>(identifierValue);
 }
 
-shared_ptr<Exp> Parser::parseLetExp() {
-    seekToNextToken();
-    auto name = identifierValue;
-    seekToNextToken();
-    auto exp = parseExpression();
-    if (!exp) {
-        return nullptr;
-    }
-    seekToNextToken();
-    if (currentToken != ')') {
-        return error("Expected ')' in 'let' expression.");
-    }
-    return make_shared<LetExp>(name, move(exp));
-}
-
 shared_ptr<Exp> Parser::parseFunCall() {
     auto funcName = identifierValue;
     vector<shared_ptr<Exp>> exps;
@@ -192,7 +172,7 @@ shared_ptr<Exp> Parser::parseFunCall() {
         exps.push_back(move(exp));
         seekToNextToken();
     }
-    return make_shared<FunCallExp>(funcName, move(exps));
+    return FunCallExp::create(funcName, exps);
 }
 
 shared_ptr<Exp> Parser::error(string msg) {
