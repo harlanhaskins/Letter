@@ -12,7 +12,7 @@
 using namespace std;
 
 string NumExp::dump(string indent) {
-    return indent + "NumExp " + to_string(this->value);
+    return indent + dumpLoc() + ": NumExp " + to_string(this->value);
 }
 
 Value *NumExp::codegen(IRGenerator &gen) {
@@ -20,7 +20,7 @@ Value *NumExp::codegen(IRGenerator &gen) {
 }
 
 string VarExp::dump(string indent) {
-    return indent + "VarExp \"" + this->name + "\"";
+    return indent + dumpLoc() + ": VarExp \"" + this->name + "\"";
 }
 
 Value *VarExp::codegen(IRGenerator &gen) {
@@ -34,7 +34,7 @@ Value *VarExp::codegen(IRGenerator &gen) {
 }
 
 string FunCallExp::dump(string indent) {
-    auto s = indent + "FunCallExp \"" + this->func + "\" args=[\n";
+    auto s = indent + dumpLoc() + ": FunCallExp \"" + this->func + "\" args=[\n";
     for (size_t i = 0; i < this->args.size(); i++) {
         if (i != 0) {
             s += ",\n";

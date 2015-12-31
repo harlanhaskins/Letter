@@ -15,7 +15,7 @@
 using namespace std;
 
 std::string UserFunc::dump(std::string indent) {
-    auto s = indent + "FunDef \"" + this->name + "\" args=[";
+    auto s = indent + dumpLoc() + ": FunDef \"" + this->name + "\" args=[";
     for (size_t i = 0; i < this->args.size(); i++) {
         if (i != 0) {
             s += ", ";
@@ -64,6 +64,6 @@ int BuiltinFunc::arity() {
     return this->_arity;
 }
 
-Value *BuiltinFunc::codegenCall(exp_v &args) {
+Value *BuiltinFunc::codegenCall(source_item_v &args) {
     return codegenBlock(args);
 }

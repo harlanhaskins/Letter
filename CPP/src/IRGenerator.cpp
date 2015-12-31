@@ -26,8 +26,8 @@ Constant *globalStringPtr(Module *m, std::string value) {
     return globalArray;
 }
 
-Value *genBinary(IRGenerator &gen, BuiltinFunc::exp_v args, std::function<Value * (Value *, Value *)> block) {
-    return [&gen, block](BuiltinFunc::exp_v args) {
+Value *genBinary(IRGenerator &gen, BuiltinFunc::source_item_v args, std::function<Value * (Value *, Value *)> block) {
+    return [&gen, block](BuiltinFunc::source_item_v args) {
         auto v = args[0]->codegen(gen);
         if (!v) return (Value *)nullptr;
         auto v1 = args[1]->codegen(gen);
@@ -39,57 +39,57 @@ Value *genBinary(IRGenerator &gen, BuiltinFunc::exp_v args, std::function<Value 
 void IRGenerator::genBuiltins() {
     
     // create bindings for standard binary instructions, using their LLVM counterparts.
-    builtins["+"] = std::make_shared<BuiltinFunc>("+", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["+"] = std::make_shared<BuiltinFunc>("+", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return builder.CreateAdd(v, v1, "addtmp");
         });
     });
-    builtins["*"] = std::make_shared<BuiltinFunc>("*", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["*"] = std::make_shared<BuiltinFunc>("*", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return builder.CreateMul(v, v1, "multmp");
         });
     });
-    builtins["-"] = std::make_shared<BuiltinFunc>("-", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["-"] = std::make_shared<BuiltinFunc>("-", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return builder.CreateSub(v, v1, "subtmp");
         });
     });
-    builtins["/"] = std::make_shared<BuiltinFunc>("/", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["/"] = std::make_shared<BuiltinFunc>("/", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateUDiv(v, v1, "divtmp"));
         });
     });
-    builtins["<"] = std::make_shared<BuiltinFunc>("<", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["<"] = std::make_shared<BuiltinFunc>("<", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateICmpSLT(v, v1, "lttmp"));
         });
     });
-    builtins[">"] = std::make_shared<BuiltinFunc>(">", 2, [this](BuiltinFunc::exp_v args) {
+    builtins[">"] = std::make_shared<BuiltinFunc>(">", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateICmpSGT(v, v1, "gttmp"));
         });
     });
-    builtins[">="] = std::make_shared<BuiltinFunc>(">=", 2, [this](BuiltinFunc::exp_v args) {
+    builtins[">="] = std::make_shared<BuiltinFunc>(">=", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateICmpSGE(v, v1, "getmp"));
         });
     });
-    builtins["<="] = std::make_shared<BuiltinFunc>("<=", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["<="] = std::make_shared<BuiltinFunc>("<=", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateICmpSLE(v, v1, "letmp"));
         });
     });
-    builtins["="] = std::make_shared<BuiltinFunc>("=", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["="] = std::make_shared<BuiltinFunc>("=", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateICmpEQ(v, v1, "eqtmp"));
         });
     });
-    builtins["!="] = std::make_shared<BuiltinFunc>("=", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["!="] = std::make_shared<BuiltinFunc>("=", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateICmpNE(v, v1, "netmp"));
         });
     });
-    builtins["mod"] = std::make_shared<BuiltinFunc>("mod", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["mod"] = std::make_shared<BuiltinFunc>("mod", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateURem(v, v1, "modtmp"));
         });
@@ -97,7 +97,7 @@ void IRGenerator::genBuiltins() {
     
     // create builtins for language constructs (if, do, let, while)
     
-    builtins["if"] = std::make_shared<BuiltinFunc>("if", 3, [this](BuiltinFunc::exp_v args) {
+    builtins["if"] = std::make_shared<BuiltinFunc>("if", 3, [this](BuiltinFunc::source_item_v args) {
         
         // emit the condition
         auto cond = args[0]->codegen(*this);
@@ -151,7 +151,7 @@ void IRGenerator::genBuiltins() {
         return (Value *)phi;
     });
     
-    builtins["do"] = std::make_shared<BuiltinFunc>("do", -1, [this](BuiltinFunc::exp_v args) {
+    builtins["do"] = std::make_shared<BuiltinFunc>("do", -1, [this](BuiltinFunc::source_item_v args) {
         // create a stack variable to store the `do` result
         auto res = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), nullptr, "dores");
         
@@ -173,7 +173,7 @@ void IRGenerator::genBuiltins() {
         return ret;
     });
     
-    builtins["let"] = std::make_shared<BuiltinFunc>("let", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["let"] = std::make_shared<BuiltinFunc>("let", 2, [this](BuiltinFunc::source_item_v args) {
         // force the first argument as a varexp
         VarExp *exp = dynamic_cast<VarExp *>(&*args[0]);
         if (!exp) {
@@ -200,7 +200,7 @@ void IRGenerator::genBuiltins() {
         return (Value *)v;
     });
     
-    builtins["while"] = std::make_shared<BuiltinFunc>("while", 2, [this](BuiltinFunc::exp_v args) {
+    builtins["while"] = std::make_shared<BuiltinFunc>("while", 2, [this](BuiltinFunc::source_item_v args) {
         auto f = builder.GetInsertBlock()->getParent();
         
         // basic blocks for the condition, body, and end of the loop
@@ -308,7 +308,7 @@ llvm::Value *IRGenerator::genPrintf() {
     return f;
 }
 
-void IRGenerator::recordError(std::string error, Exp &exp) {
+void IRGenerator::recordError(std::string error, SourceItem &exp) {
     errors.push_back("[line " + std::to_string(exp.getLine()) + ", column " + std::to_string(exp.getColumn()) + "]: " + error);
 }
 
@@ -333,7 +333,7 @@ void IRGenerator::addFunction(Function *function) {
     passManager->run(*function);
 }
 
-llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<Exp>> exps) {
+llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<SourceItem>> exps) {
     auto ftype = FunctionType::get(Type::getInt64Ty(module->getContext()), false);
     auto f = Function::Create(ftype, Function::ExternalLinkage, "letter_main", module.get());
     auto bb = BasicBlock::Create(module->getContext(), "entry", f);

@@ -48,6 +48,7 @@ int Parser::gettok() {
     while (isspace(currentChar())) {
         advance();
     }
+    currentExpLoc = currentLoc();
     if (isident(currentChar())) {
         string id;
         do {
@@ -109,10 +110,10 @@ string Parser::unconsumedInput() {
     return input.substr(currentTokenIndex, input.size() - currentTokenIndex);
 }
 
-void Parser::parseFile(vector<shared_ptr<Exp>> &exps, vector<shared_ptr<UserFunc>> &funcs) {
+void Parser::parseFile(vector<shared_ptr<SourceItem>> &exps, vector<shared_ptr<SourceItem>> &funcs) {
     while (currentToken != EofTok) {
-        shared_ptr<Exp> exp;
-        shared_ptr<UserFunc> func;
+        shared_ptr<SourceItem> exp;
+        shared_ptr<SourceItem> func;
         parseLine(exp, func);
         if (exp) {
             exps.push_back(exp);
@@ -123,27 +124,28 @@ void Parser::parseFile(vector<shared_ptr<Exp>> &exps, vector<shared_ptr<UserFunc
     }
 }
 
-shared_ptr<UserFunc> Parser::parseFunction() {
+shared_ptr<SourceItem> Parser::parseFunction() {
+    auto loc = currentExpLoc;
+    seekToNextToken();
     auto name = identifierValue;
     vector<string> args;
     seekToNextToken();
     while (currentToken != ')') {
         if (currentToken == EofTok)
-            return errorFunc("Unexpected EOF in function definiton for " + name);
+            return error("Unexpected EOF in function definiton for " + name);
         args.push_back(identifierValue);
         seekToNextToken();
     }
     seekToNextToken(); // find subexpression.
     auto exp = parseExpression();
-    if (!exp) return errorFunc("Invalid expression in function body for " + name);
+    if (!exp) return error("Invalid expression in function body for " + name);
     seekToNextToken();
-    return make_shared<UserFunc>(name, args, move(exp), currentLoc());
+    return make_shared<UserFunc>(name, args, move(exp), loc);
 }
 
-void Parser::parseLine(shared_ptr<Exp> &exp, shared_ptr<UserFunc> &func) {
+void Parser::parseLine(shared_ptr<SourceItem> &exp, shared_ptr<SourceItem> &func) {
     if (this->currentToken == FunDefTok) {
         exp = nullptr;
-        seekToNextToken();
         func = parseFunction();
     } else {
         exp = parseExpression();
@@ -151,7 +153,7 @@ void Parser::parseLine(shared_ptr<Exp> &exp, shared_ptr<UserFunc> &func) {
     }
 }
 
-shared_ptr<Exp> Parser::parseExpression() {
+shared_ptr<SourceItem> Parser::parseExpression() {
     switch (this->currentToken) {
         case IdentifierTok:
             return parseVarLookup();
@@ -166,17 +168,18 @@ shared_ptr<Exp> Parser::parseExpression() {
     return nullptr;
 }
 
-shared_ptr<Exp> Parser::parseNumExp() {
-    return make_shared<NumExp>(numericValue, currentLoc());
+shared_ptr<SourceItem> Parser::parseNumExp() {
+    return make_shared<NumExp>(numericValue, currentExpLoc);
 }
 
-shared_ptr<Exp> Parser::parseVarLookup() {
-    return make_shared<VarExp>(identifierValue, currentLoc());
+shared_ptr<SourceItem> Parser::parseVarLookup() {
+    return make_shared<VarExp>(identifierValue, currentExpLoc);
 }
 
-shared_ptr<Exp> Parser::parseFunCall() {
+shared_ptr<SourceItem> Parser::parseFunCall() {
     auto funcName = identifierValue;
-    vector<shared_ptr<Exp>> exps;
+    auto loc = currentExpLoc;
+    vector<shared_ptr<SourceItem>> exps;
     seekToNextToken();
     while (currentToken != ')') {
         if (currentToken == EofTok)
@@ -186,15 +189,10 @@ shared_ptr<Exp> Parser::parseFunCall() {
         exps.push_back(move(exp));
         seekToNextToken();
     }
-    return make_shared<FunCallExp>(funcName, exps, currentLoc());
+    return make_shared<FunCallExp>(funcName, exps, loc);
 }
 
-shared_ptr<Exp> Parser::error(string msg) {
+shared_ptr<SourceItem> Parser::error(string msg) {
     errors.push_back(msg);
-    return nullptr;
-}
-
-shared_ptr<UserFunc> Parser::errorFunc(string msg) {
-    error(msg);
     return nullptr;
 }

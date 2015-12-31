@@ -25,24 +25,24 @@ public:
     Parser(std::string input): input(input) {
         seekToNextToken();
     }
-    std::shared_ptr<Exp> parseExpression();
-    std::shared_ptr<UserFunc> parseFunction();
+    std::shared_ptr<SourceItem> parseExpression();
+    std::shared_ptr<SourceItem> parseFunction();
     std::vector<std::string> errors;
-    void parseLine(std::shared_ptr<Exp> &exp, std::shared_ptr<UserFunc> &func);
-    void parseFile(std::vector<std::shared_ptr<Exp>> &exps, std::vector<std::shared_ptr<UserFunc>> &funcs);
+    void parseLine(std::shared_ptr<SourceItem> &exp, std::shared_ptr<SourceItem> &func);
+    void parseFile(std::vector<std::shared_ptr<SourceItem>> &exps, std::vector<std::shared_ptr<SourceItem>> &funcs);
 private:
     int gettok();
     int seekToNextToken();
     char currentChar();
     SourceLoc currentLoc();
+    SourceLoc currentExpLoc;
     void advance();
     std::string unconsumedInput();
-    std::shared_ptr<Exp> parseNumExp();
-    std::shared_ptr<Exp> parseVarLookup();
-    std::shared_ptr<Exp> parseFunCall();
-    std::shared_ptr<Exp> parseLetExp();
-    std::shared_ptr<Exp> error(std::string msg);
-    std::shared_ptr<UserFunc> errorFunc(std::string msg);
+    std::shared_ptr<SourceItem> parseNumExp();
+    std::shared_ptr<SourceItem> parseVarLookup();
+    std::shared_ptr<SourceItem> parseFunCall();
+    std::shared_ptr<SourceItem> parseLetExp();
+    std::shared_ptr<SourceItem> error(std::string msg);
 };
 
 #endif /* Parser_hpp */

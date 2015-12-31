@@ -59,10 +59,10 @@ public:
     llvm::AllocaInst *lookupBinding(std::string name);
     void addBinding(std::string name, llvm::AllocaInst *inst);
     void addFunction(Function *function);
-    void recordError(std::string error, Exp &exp);
-    llvm::Value *genExp(std::shared_ptr<Exp> exp);
+    void recordError(std::string error, SourceItem &exp);
+    llvm::Value *genExp(std::shared_ptr<SourceItem> exp);
     llvm::Value *genFunc(std::shared_ptr<UserFunc> func);
-    llvm::Value *genMainFunc(std::vector<std::shared_ptr<Exp>> exps);
+    llvm::Value *genMainFunc(std::vector<std::shared_ptr<SourceItem>> exps);
     llvm::AllocaInst *createEntryBlockAlloca(Function *f,
                                              const std::string &name);
     void createArgumentAllocas(std::vector<std::string> args, Function *f);

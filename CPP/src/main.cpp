@@ -37,8 +37,8 @@ int main(int argc, const char * argv[]) {
     char *testCode = (char *)malloc(size * sizeof(char));
     file.read(testCode, size);
     Parser p(testCode);
-    std::vector<std::shared_ptr<Exp>> exps;
-    std::vector<std::shared_ptr<UserFunc>> funcs;
+    std::vector<std::shared_ptr<SourceItem>> exps;
+    std::vector<std::shared_ptr<SourceItem>> funcs;
     p.parseFile(exps, funcs);
     if (!p.errors.empty()) {
         for (auto &error: p.errors) {
@@ -58,7 +58,7 @@ int main(int argc, const char * argv[]) {
         
         // generate function prototypes so functions can reference undeclared functions
         for (auto &func : funcs) {
-            func->codegenProto(generator);
+            dynamic_cast<UserFunc *>(&*func)->codegenProto(generator);
         }
         for (auto &func : funcs) {
             func->codegen(generator);

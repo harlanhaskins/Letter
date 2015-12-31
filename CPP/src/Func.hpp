@@ -25,20 +25,17 @@ public:
     virtual int arity() = 0;
 };
 
-class UserFunc: public Func {
+class UserFunc: public Func, public SourceItem {
 public:
-    SourceLoc sourceLoc;
-    std::shared_ptr<Exp> body;
+    std::shared_ptr<SourceItem> body;
     std::vector<std::string> args;
-    UserFunc(std::string name, std::vector<std::string> args, std::shared_ptr<Exp> body, SourceLoc loc): body(move(body)), args(args) {
+    UserFunc(std::string name, std::vector<std::string> args, std::shared_ptr<SourceItem> body, SourceLoc loc): body(move(body)), args(args) {
         this->name = name;
         this->sourceLoc = loc;
     }
     virtual std::string dump(std::string indent = "");
     Function *codegen(IRGenerator &gen);
     Function *codegenProto(IRGenerator &gen);
-    int getLine() { return this->sourceLoc.line; }
-    int getColumn() { return this->sourceLoc.column; }
     virtual int arity();
 };
 
@@ -46,15 +43,15 @@ class BuiltinFunc: public Func {
 private:
     int _arity;
 public:
-    typedef std::vector<std::shared_ptr<Exp>> exp_v;
-    std::function<Value *(exp_v args)> codegenBlock;
-    BuiltinFunc(std::string name, int arity, std::function<Value *(exp_v args)> codegenBlock) {
+    typedef std::vector<std::shared_ptr<SourceItem>> source_item_v;
+    std::function<Value *(source_item_v args)> codegenBlock;
+    BuiltinFunc(std::string name, int arity, std::function<Value *(source_item_v args)> codegenBlock) {
         this->_arity = arity;
         this->name = name;
         this->codegenBlock = codegenBlock;
     }
     virtual std::string dump(std::string indent = "");
-    Value *codegenCall(exp_v &args);
+    Value *codegenCall(source_item_v &args);
     virtual int arity();
 };
 
