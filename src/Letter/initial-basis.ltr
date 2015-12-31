@@ -1,4 +1,0 @@
-(def not (n) (if n 0 1))
-(def min (n m) (if (< m n) n m))
-(def max (n m) (if (< n m) n m))
-(def in-range? (x l h) (and (>= x l) (< x h)))
