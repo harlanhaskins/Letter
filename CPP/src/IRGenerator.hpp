@@ -36,10 +36,10 @@ public:
         this->passManager = llvm::make_unique<legacy::FunctionPassManager>(module.get());
         
         // Set up the optimizer pipeline.
-        this->passManager->add(createBasicAliasAnalysisPass());
-        this->passManager->add(createInstructionCombiningPass());
-        this->passManager->add(createReassociatePass());
         if (optimized) {
+            this->passManager->add(createBasicAliasAnalysisPass());
+            this->passManager->add(createInstructionCombiningPass());
+            this->passManager->add(createReassociatePass());
             this->passManager->add(createGVNPass());
             this->passManager->add(createCFGSimplificationPass());
             this->passManager->add(createPromoteMemoryToRegisterPass());

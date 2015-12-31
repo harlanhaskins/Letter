@@ -36,6 +36,54 @@ Value *genBinary(IRGenerator &gen, BuiltinFunc::source_item_v args, std::functio
     }(args);
 }
 
+llvm::Value *genAndOr(IRGenerator &gen, BuiltinFunc::source_item_v args, bool isAnd) {
+    std::string name = isAnd ? "and" : "or";
+    auto f = gen.builder.GetInsertBlock()->getParent();
+    auto firstbb = BasicBlock::Create(gen.module->getContext(), name + "first", f);
+    auto secondbb = BasicBlock::Create(gen.module->getContext(), name + "second");
+    auto endbb = BasicBlock::Create(gen.module->getContext(), name + "end");
+    gen.builder.CreateBr(firstbb);
+    gen.builder.SetInsertPoint(firstbb);
+    
+    auto firstcond = args[0]->codegen(gen);
+    if (!firstcond) return (Value *)nullptr;
+    
+    auto zero = ConstantInt::getNullValue(Type::getInt64Ty(gen.module->getContext()));
+    
+    auto firstcmp = gen.builder.CreateICmpNE(firstcond, zero);
+    
+    if (isAnd) {
+        gen.builder.CreateCondBr(firstcmp, secondbb, endbb);
+    } else {
+        gen.builder.CreateCondBr(firstcmp, endbb, secondbb);
+    }
+    
+    firstbb = gen.builder.GetInsertBlock();
+    
+    f->getBasicBlockList().push_back(secondbb);
+    gen.builder.SetInsertPoint(secondbb);
+    
+    auto secondcond = args[1]->codegen(gen);
+    if (!secondcond) return (Value *)nullptr;
+    
+    auto secondcmp = gen.builder.CreateICmpNE(secondcond, zero);
+    
+    gen.builder.CreateBr(endbb);
+    secondbb = gen.builder.GetInsertBlock();
+    
+    f->getBasicBlockList().push_back(endbb);
+    gen.builder.SetInsertPoint(endbb);
+    
+    PHINode *phi = gen.builder.CreatePHI(firstcmp->getType(), 2, "andtmp");
+    
+    phi->addIncoming(firstcmp, firstbb);
+    phi->addIncoming(secondcmp, secondbb);
+    
+    auto sext = gen.builder.CreateZExt(phi, Type::getInt64Ty(gen.module->getContext()));
+    
+    return (Value *)sext;
+}
+
 void IRGenerator::genBuiltins() {
     
     // create bindings for standard binary instructions, using their LLVM counterparts.
@@ -149,6 +197,14 @@ void IRGenerator::genBuiltins() {
         
         // return the phi node's value
         return (Value *)phi;
+    });
+    
+    builtins["and"] = std::make_shared<BuiltinFunc>("and", 2, [this](BuiltinFunc::source_item_v args) {
+        return genAndOr(*this, args, true);
+    });
+    
+    builtins["or"] = std::make_shared<BuiltinFunc>("or", 2, [this](BuiltinFunc::source_item_v args) {
+        return genAndOr(*this, args, false);
     });
     
     builtins["do"] = std::make_shared<BuiltinFunc>("do", -1, [this](BuiltinFunc::source_item_v args) {

@@ -7,9 +7,11 @@ CFLAGS=-g -o $(EXECUTABLE_LOC)
 LLFLAGS= $(shell llvm-config --cxxflags --ldflags --system-libs --libs core mcjit orcjit native runtimedyld)
 FILES=src/*.cpp
 
-all:
+$(EXECUTABLE_LOC):
 	mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(LLFLAGS) $(FILES)
+
+all: $(EXECUTABLE_LOC)
 
 clean:
 	rm -rf $(BUILD_DIR)
