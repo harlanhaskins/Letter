@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"

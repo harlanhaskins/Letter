@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DCAEDEC21C2C582E00B5AB97 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEDEC11C2C582E00B5AB97 /* main.cpp */; };
-		DCAEE1311C2C65CD00B5AB97 /* Exp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE12F1C2C65CD00B5AB97 /* Exp.cpp */; };
-		DCAEE1341C2C692700B5AB97 /* Func.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE1321C2C692700B5AB97 /* Func.cpp */; };
-		DCAEE1371C2C8C7600B5AB97 /* Parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */; };
+		DC1794B51C350AED00B9FAC4 /* Exp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC1794AB1C350AED00B9FAC4 /* Exp.cpp */; };
+		DC1794B61C350AED00B9FAC4 /* Func.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC1794AD1C350AED00B9FAC4 /* Func.cpp */; };
+		DC1794B71C350AED00B9FAC4 /* IRGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC1794AF1C350AED00B9FAC4 /* IRGenerator.cpp */; };
+		DC1794B81C350AED00B9FAC4 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC1794B21C350AED00B9FAC4 /* main.cpp */; };
+		DC1794B91C350AED00B9FAC4 /* Parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC1794B31C350AED00B9FAC4 /* Parser.cpp */; };
 		DCCE95E71C3319CA00FA0513 /* libLLVM-3.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */; };
-		DCD0BEEE1C30E2DF00C12405 /* IRGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCD0BEEC1C30E2DF00C12405 /* IRGenerator.cpp */; };
 		DCD0BEF01C30E7BC00C12405 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEEF1C30E7BC00C12405 /* libcurses.tbd */; };
 /* End PBXBuildFile section */
 
@@ -29,18 +29,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		DC1794AB1C350AED00B9FAC4 /* Exp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Exp.cpp; path = src/Exp.cpp; sourceTree = SOURCE_ROOT; };
+		DC1794AC1C350AED00B9FAC4 /* Exp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Exp.hpp; path = src/Exp.hpp; sourceTree = SOURCE_ROOT; };
+		DC1794AD1C350AED00B9FAC4 /* Func.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Func.cpp; path = src/Func.cpp; sourceTree = SOURCE_ROOT; };
+		DC1794AE1C350AED00B9FAC4 /* Func.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Func.hpp; path = src/Func.hpp; sourceTree = SOURCE_ROOT; };
+		DC1794AF1C350AED00B9FAC4 /* IRGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IRGenerator.cpp; path = src/IRGenerator.cpp; sourceTree = SOURCE_ROOT; };
+		DC1794B01C350AED00B9FAC4 /* IRGenerator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = IRGenerator.hpp; path = src/IRGenerator.hpp; sourceTree = SOURCE_ROOT; };
+		DC1794B11C350AED00B9FAC4 /* LetterJIT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LetterJIT.h; path = src/LetterJIT.h; sourceTree = SOURCE_ROOT; };
+		DC1794B21C350AED00B9FAC4 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = src/main.cpp; sourceTree = SOURCE_ROOT; };
+		DC1794B31C350AED00B9FAC4 /* Parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parser.cpp; path = src/Parser.cpp; sourceTree = SOURCE_ROOT; };
+		DC1794B41C350AED00B9FAC4 /* Parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Parser.hpp; path = src/Parser.hpp; sourceTree = SOURCE_ROOT; };
 		DCAEDEBE1C2C582E00B5AB97 /* Letter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Letter; sourceTree = BUILT_PRODUCTS_DIR; };
-		DCAEDEC11C2C582E00B5AB97 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		DCAEE12F1C2C65CD00B5AB97 /* Exp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Exp.cpp; sourceTree = "<group>"; };
-		DCAEE1301C2C65CD00B5AB97 /* Exp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Exp.hpp; sourceTree = "<group>"; };
-		DCAEE1321C2C692700B5AB97 /* Func.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Func.cpp; sourceTree = "<group>"; };
-		DCAEE1331C2C692700B5AB97 /* Func.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Func.hpp; sourceTree = "<group>"; };
-		DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Parser.cpp; sourceTree = "<group>"; };
-		DCAEE1361C2C8C7600B5AB97 /* Parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Parser.hpp; sourceTree = "<group>"; };
-		DCCE95DD1C33150500FA0513 /* LetterJIT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LetterJIT.h; sourceTree = "<group>"; };
 		DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libLLVM-3.7.dylib"; path = "../../../../../../../usr/local/Cellar/llvm37/3.7.0/lib/llvm-3.7/lib/libLLVM-3.7.dylib"; sourceTree = "<group>"; };
-		DCD0BEEC1C30E2DF00C12405 /* IRGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IRGenerator.cpp; sourceTree = "<group>"; };
-		DCD0BEED1C30E2DF00C12405 /* IRGenerator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = IRGenerator.hpp; sourceTree = "<group>"; };
 		DCD0BEEF1C30E7BC00C12405 /* libcurses.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurses.tbd; path = usr/lib/libcurses.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -78,16 +78,16 @@
 		DCAEDEC01C2C582E00B5AB97 /* Letter */ = {
 			isa = PBXGroup;
 			children = (
-				DCCE95DD1C33150500FA0513 /* LetterJIT.h */,
-				DCAEE12F1C2C65CD00B5AB97 /* Exp.cpp */,
-				DCAEE1301C2C65CD00B5AB97 /* Exp.hpp */,
-				DCAEE1321C2C692700B5AB97 /* Func.cpp */,
-				DCAEE1331C2C692700B5AB97 /* Func.hpp */,
-				DCD0BEEC1C30E2DF00C12405 /* IRGenerator.cpp */,
-				DCD0BEED1C30E2DF00C12405 /* IRGenerator.hpp */,
-				DCAEDEC11C2C582E00B5AB97 /* main.cpp */,
-				DCAEE1351C2C8C7600B5AB97 /* Parser.cpp */,
-				DCAEE1361C2C8C7600B5AB97 /* Parser.hpp */,
+				DC1794AB1C350AED00B9FAC4 /* Exp.cpp */,
+				DC1794AC1C350AED00B9FAC4 /* Exp.hpp */,
+				DC1794AD1C350AED00B9FAC4 /* Func.cpp */,
+				DC1794AE1C350AED00B9FAC4 /* Func.hpp */,
+				DC1794AF1C350AED00B9FAC4 /* IRGenerator.cpp */,
+				DC1794B01C350AED00B9FAC4 /* IRGenerator.hpp */,
+				DC1794B11C350AED00B9FAC4 /* LetterJIT.h */,
+				DC1794B21C350AED00B9FAC4 /* main.cpp */,
+				DC1794B31C350AED00B9FAC4 /* Parser.cpp */,
+				DC1794B41C350AED00B9FAC4 /* Parser.hpp */,
 			);
 			path = Letter;
 			sourceTree = "<group>";
@@ -148,11 +148,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DCAEE1371C2C8C7600B5AB97 /* Parser.cpp in Sources */,
-				DCAEE1341C2C692700B5AB97 /* Func.cpp in Sources */,
-				DCAEE1311C2C65CD00B5AB97 /* Exp.cpp in Sources */,
-				DCD0BEEE1C30E2DF00C12405 /* IRGenerator.cpp in Sources */,
-				DCAEDEC21C2C582E00B5AB97 /* main.cpp in Sources */,
+				DC1794B51C350AED00B9FAC4 /* Exp.cpp in Sources */,
+				DC1794B71C350AED00B9FAC4 /* IRGenerator.cpp in Sources */,
+				DC1794B81C350AED00B9FAC4 /* main.cpp in Sources */,
+				DC1794B91C350AED00B9FAC4 /* Parser.cpp in Sources */,
+				DC1794B61C350AED00B9FAC4 /* Func.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

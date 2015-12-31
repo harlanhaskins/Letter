@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include "Exp.hpp"
 #include "Func.hpp"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -33,8 +32,8 @@ public:
     std::vector<std::string> errors;
     IRGenerator(std::string moduleName, bool optimized): optimized(optimized), builder(getGlobalContext()) {
         
-        this->module = std::make_unique<Module>(moduleName, getGlobalContext());
-        this->passManager = std::make_unique<legacy::FunctionPassManager>(module.get());
+        this->module = llvm::make_unique<Module>(moduleName, getGlobalContext());
+        this->passManager = llvm::make_unique<legacy::FunctionPassManager>(module.get());
         
         // Set up the optimizer pipeline.
         this->passManager->add(createBasicAliasAnalysisPass());
