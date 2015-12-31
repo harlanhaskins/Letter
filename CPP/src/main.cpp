@@ -27,6 +27,10 @@ int main(int argc, const char * argv[]) {
     cl::ParseCommandLineOptions(argc, argv);
     
     std::ifstream file(filename.c_str(), std::iostream::binary | std::iostream::ate);
+    if (!file) {
+        std::cerr << "Could not open file \"" + filename + "\"" << std::endl;
+        return EXIT_FAILURE;
+    }
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
     

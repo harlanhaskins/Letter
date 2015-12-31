@@ -38,12 +38,21 @@ public:
         // Set up the optimizer pipeline.
         this->passManager->add(createBasicAliasAnalysisPass());
         this->passManager->add(createInstructionCombiningPass());
-        this->passManager->add(createPromoteMemoryToRegisterPass());
         this->passManager->add(createReassociatePass());
-        this->passManager->add(createGVNPass());
-        this->passManager->add(createTailCallEliminationPass());
-        this->passManager->add(createCFGSimplificationPass());
+        if (optimized) {
+            this->passManager->add(createGVNPass());
+            this->passManager->add(createCFGSimplificationPass());
+            this->passManager->add(createPromoteMemoryToRegisterPass());
+            this->passManager->add(createTailCallEliminationPass());
+        }
         this->passManager->doInitialization();
+        
+        InitializeNativeTarget();
+        InitializeNativeTargetAsmPrinter();
+        
+        this->jit = llvm::make_unique<LetterJIT>();
+        this->module->setDataLayout(jit->getTargetMachine().createDataLayout());
+        this->module->setTargetTriple(jit->getTargetMachine().getTargetTriple().getTriple());
         
         this->genBuiltins();
     };
@@ -59,6 +68,7 @@ public:
     void createArgumentAllocas(std::vector<std::string> args, Function *f);
     int64_t execute();
 private:
+    std::unique_ptr<LetterJIT> jit;
     std::unique_ptr<legacy::FunctionPassManager> passManager;
     void genBuiltins();
     void printBindings();

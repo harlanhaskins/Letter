@@ -243,7 +243,7 @@ void IRGenerator::genBuiltins() {
     
     std::vector<Type *> types { Type::getInt64Ty(module->getContext()) };
     auto printType = FunctionType::get(Type::getInt64Ty(module->getContext()), types, false);
-    auto func = Function::Create(printType, Function::ExternalLinkage, "print", module.get());
+    auto func = Function::Create(printType, Function::PrivateLinkage, "print", module.get());
     namedValues.clear();
     
     Value *firstArg = nullptr;
@@ -254,7 +254,7 @@ void IRGenerator::genBuiltins() {
     
     auto globalArray = globalStringPtr(module.get(), "%d\n");
     
-    Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(module->getContext()));
+    Constant* zero = Constant::getNullValue(IntegerType::getInt64Ty(module->getContext()));
     
     std::vector<Constant*> indices = {zero, zero};
     
@@ -267,22 +267,17 @@ void IRGenerator::genBuiltins() {
         std::vector<Value *> args { printfFormat, firstArg };
         builder.CreateCall(printf, args, "calltmp");
         builder.CreateRet(firstArg);
-        verifyFunction(*func);
-        if (optimized) passManager->run(*func);
+        addFunction(func);
     } else {
         func->eraseFromParent();
     }
 }
 
 int64_t IRGenerator::execute() {
-    InitializeNativeTarget();
-    InitializeNativeTargetAsmPrinter();
-    LetterJIT jit = LetterJIT();
-    this->module->setDataLayout(jit.getTargetMachine().createDataLayout());
-    jit.addModule(std::move(this->module));
-    auto main = (int64_t (*)())jit.findSymbol("main").getAddress();
-    if (main) {
-        return main();
+    jit->addModule(std::move(this->module));
+    auto main_f = (int64_t (*)())jit->findSymbol("letter_main").getAddress();
+    if (main_f) {
+        return main_f();
     } else {
         std::cerr << "Could not find main function." << std::endl;
         return EXIT_FAILURE;
@@ -335,14 +330,12 @@ AllocaInst *IRGenerator::createEntryBlockAlloca(Function *f,
 
 void IRGenerator::addFunction(Function *function) {
     verifyFunction(*function);
-    if (optimized) {
-        passManager->run(*function);
-    }
+    passManager->run(*function);
 }
 
 llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<Exp>> exps) {
     auto ftype = FunctionType::get(Type::getInt64Ty(module->getContext()), false);
-    auto f = Function::Create(ftype, Function::ExternalLinkage, "main", module.get());
+    auto f = Function::Create(ftype, Function::ExternalLinkage, "letter_main", module.get());
     auto bb = BasicBlock::Create(module->getContext(), "entry", f);
     builder.SetInsertPoint(bb);
     namedValues.clear();

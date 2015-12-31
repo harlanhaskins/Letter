@@ -29,7 +29,7 @@ std::string UserFunc::dump(std::string indent) {
 Function *UserFunc::codegenProto(IRGenerator &gen) {
     std::vector<Type *> types(arity(), Type::getInt64Ty(gen.module->getContext()));
     auto ftype = FunctionType::get(Type::getInt64Ty(gen.module->getContext()), types, false);
-    return Function::Create(ftype, Function::ExternalLinkage, name, gen.module.get());
+    return Function::Create(ftype, Function::PrivateLinkage, name, gen.module.get());
 }
 
 Function *UserFunc::codegen(IRGenerator &gen) {
