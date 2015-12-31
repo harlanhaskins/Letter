@@ -84,7 +84,7 @@ void IRGenerator::genBuiltins() {
             return i64Cast(builder.CreateICmpEQ(v, v1, "eqtmp"));
         });
     });
-    builtins["!="] = std::make_shared<BuiltinFunc>("=", 2, [this](BuiltinFunc::source_item_v args) {
+    builtins["!="] = std::make_shared<BuiltinFunc>("!=", 2, [this](BuiltinFunc::source_item_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return i64Cast(builder.CreateICmpNE(v, v1, "netmp"));
         });
