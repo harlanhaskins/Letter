@@ -226,7 +226,15 @@ void IRGenerator::genBuiltins() {
         
         // restore the old bindings.
         namedValues = oldBindings;
+        
         return ret;
+    });
+    
+    builtins["not"] = std::make_shared<BuiltinFunc>("not", 1, [this](BuiltinFunc::source_item_v args) {
+        auto v = args[0]->codegen(*this);
+        if (!v) return (Value *)nullptr;
+        auto cmp = builder.CreateICmpNE(v, ConstantInt::getNullValue(Type::getInt64Ty(module->getContext())));
+        return builder.CreateZExt(cmp, v->getType());
     });
     
     builtins["let"] = std::make_shared<BuiltinFunc>("let", 2, [this](BuiltinFunc::source_item_v args) {
