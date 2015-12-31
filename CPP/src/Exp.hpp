@@ -23,17 +23,25 @@ class IRGenerator;
 
 using namespace llvm;
 
+typedef struct SourceLoc {
+    int column;
+    int line;
+} SourceLoc;
+
 class Exp {
 public:
+    SourceLoc sourceLoc;
     virtual ~Exp() {}
     virtual std::string dump(std::string indent = "") = 0;
     virtual Value *codegen(IRGenerator &gen) = 0;
+    int getLine() { return this->sourceLoc.line; }
+    int getColumn() { return this->sourceLoc.column; }
 };
 
 class NumExp: public Exp {
 public:
     long value;
-    NumExp(long value): value(value) {}
+    NumExp(long value, SourceLoc loc): value(value) { this->sourceLoc = loc; }
     virtual std::string dump(std::string indent = "");
     virtual Value *codegen(IRGenerator &gen);
 };
@@ -41,7 +49,7 @@ public:
 class VarExp: public Exp {
 public:
     std::string name;
-    VarExp(std::string name): name(name) {}
+    VarExp(std::string name, SourceLoc loc): name(name) { this->sourceLoc = loc; }
     virtual std::string dump(std::string indent = "");
     virtual Value *codegen(IRGenerator &gen);
 };
@@ -51,7 +59,7 @@ public:
     std::string func;
     std::vector<std::shared_ptr<Exp>> args;
     static std::shared_ptr<FunCallExp> create(std::string name, std::vector<std::shared_ptr<Exp>> args);
-    FunCallExp(std::string func, std::vector<std::shared_ptr<Exp>> args): func(func), args(args) {}
+    FunCallExp(std::string func, std::vector<std::shared_ptr<Exp>> args, SourceLoc loc): func(func), args(args) { this->sourceLoc = loc; }
     virtual std::string dump(std::string indent = "");
     virtual Value *codegen(IRGenerator &gen);
 };

@@ -27,7 +27,7 @@ Value *VarExp::codegen(IRGenerator &gen) {
     // Look this variable up in the function.
     AllocaInst *v = gen.lookupBinding(name);
     if (!v) {
-        gen.recordError("Unknown variable name \"" + name + "\"");
+        gen.recordError("Unknown variable name \"" + name + "\"", *this);
         return nullptr;
     }
     return gen.builder.CreateLoad(v, name);
@@ -47,7 +47,7 @@ string FunCallExp::dump(string indent) {
 
 Value *FunCallExp::codegen(IRGenerator &gen) {
     auto handleArityMismath = [this, &gen](int expected, int got) {
-        gen.recordError("Invalid number of arguments to function " + func + ". Expected " + std::to_string(expected) + " got " + std::to_string(got));
+        gen.recordError("Invalid number of arguments to function " + func + ". Expected " + std::to_string(expected) + " got " + std::to_string(got), *this);
     };
     if (auto builtin = gen.builtins[func]) {
         if (builtin->arity() != INFINITE_ARITY&& builtin->arity() != args.size()) {
@@ -58,7 +58,7 @@ Value *FunCallExp::codegen(IRGenerator &gen) {
     }
     Function *parent = gen.module->getFunction(func);
     if (!parent) {
-        gen.recordError("Unknown function \"" + func + "\"");
+        gen.recordError("Unknown function \"" + func + "\"", *this);
         return nullptr;
     }
     if (parent->arg_size() != args.size()) {

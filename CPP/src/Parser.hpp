@@ -19,18 +19,23 @@ class Parser {
     std::string input;
     long numericValue = 0;
     std::string identifierValue = "";
+    int line = 1;
+    int column = 0;
 public:
     Parser(std::string input): input(input) {
         seekToNextToken();
     }
     std::shared_ptr<Exp> parseExpression();
     std::shared_ptr<UserFunc> parseFunction();
+    std::vector<std::string> errors;
     void parseLine(std::shared_ptr<Exp> &exp, std::shared_ptr<UserFunc> &func);
     void parseFile(std::vector<std::shared_ptr<Exp>> &exps, std::vector<std::shared_ptr<UserFunc>> &funcs);
 private:
     int gettok();
     int seekToNextToken();
     char currentChar();
+    SourceLoc currentLoc();
+    void advance();
     std::string unconsumedInput();
     std::shared_ptr<Exp> parseNumExp();
     std::shared_ptr<Exp> parseVarLookup();

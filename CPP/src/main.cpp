@@ -40,6 +40,12 @@ int main(int argc, const char * argv[]) {
     std::vector<std::shared_ptr<Exp>> exps;
     std::vector<std::shared_ptr<UserFunc>> funcs;
     p.parseFile(exps, funcs);
+    if (!p.errors.empty()) {
+        for (auto &error: p.errors) {
+            std::cerr << error << std::endl;
+        }
+        return EXIT_FAILURE;
+    }
     if (emitAST) {
         for (auto &func: funcs) {
             std::cout << func->dump() << std::endl;
@@ -58,16 +64,16 @@ int main(int argc, const char * argv[]) {
             func->codegen(generator);
         }
         generator.genMainFunc(exps);
-        if (generator.errors.empty()) {
-            if (emitIR) {
-                generator.module->print(llvm::outs(), nullptr);
-            } else {
-                generator.execute();
-            }
-        } else {
+        if (!generator.errors.empty()) {
             for (auto &error: generator.errors) {
                 std::cerr << error << std::endl;
             }
+            return EXIT_FAILURE;
+        }
+        if (emitIR) {
+            generator.module->print(llvm::outs(), nullptr);
+        } else {
+            generator.execute();
         }
     }
     return 0;

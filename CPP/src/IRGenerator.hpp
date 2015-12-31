@@ -59,7 +59,7 @@ public:
     llvm::AllocaInst *lookupBinding(std::string name);
     void addBinding(std::string name, llvm::AllocaInst *inst);
     void addFunction(Function *function);
-    void recordError(std::string error);
+    void recordError(std::string error, Exp &exp);
     llvm::Value *genExp(std::shared_ptr<Exp> exp);
     llvm::Value *genFunc(std::shared_ptr<UserFunc> func);
     llvm::Value *genMainFunc(std::vector<std::shared_ptr<Exp>> exps);
@@ -72,7 +72,7 @@ private:
     std::unique_ptr<legacy::FunctionPassManager> passManager;
     void genBuiltins();
     void printBindings();
-    llvm::Value * genPrintf();
+    llvm::Value *genPrintf();
     llvm::Value *error(std::string message);
     llvm::Value *genDoFunc(FunCallExp exp, Function *parent);
     llvm::Value *genFunCallExp(FunCallExp exp);

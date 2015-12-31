@@ -177,7 +177,7 @@ void IRGenerator::genBuiltins() {
         // force the first argument as a varexp
         VarExp *exp = dynamic_cast<VarExp *>(&*args[0]);
         if (!exp) {
-            recordError("First argument to `let` must be a variable.");
+            recordError("First argument to `let` must be a variable", *args[0]);
             return (Value *)nullptr;
         }
         
@@ -308,8 +308,8 @@ llvm::Value *IRGenerator::genPrintf() {
     return f;
 }
 
-void IRGenerator::recordError(std::string error) {
-    errors.push_back(error);
+void IRGenerator::recordError(std::string error, Exp &exp) {
+    errors.push_back("[line " + std::to_string(exp.getLine()) + ", column " + std::to_string(exp.getColumn()) + "]: " + error);
 }
 
 void IRGenerator::addBinding(std::string name, AllocaInst *inst) {

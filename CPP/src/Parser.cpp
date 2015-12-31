@@ -30,15 +30,29 @@ bool isident(char c) {
     return isalnum(c) || c == '?' || c == '^' || c == '*' || c == '+' || c == '-' || c == '_' || c == '/' || c == '=' || c == '<' || c == '>';
 }
 
+SourceLoc Parser::currentLoc() {
+    return (SourceLoc) { column, line };
+}
+
+void Parser::advance() {
+    currentTokenIndex++;
+    if (currentChar() == '\n' || currentChar() == '\r') {
+        line++;
+        column = 0;
+    } else {
+        column++;
+    }
+}
+
 int Parser::gettok() {
     while (isspace(currentChar())) {
-        currentTokenIndex++;
+        advance();
     }
     if (isident(currentChar())) {
         string id;
         do {
             id += currentChar();
-            currentTokenIndex++;
+            advance();
         } while (isident(currentChar()));
         char *failure;
         auto num = strtol(id.c_str(), &failure, 10);
@@ -53,10 +67,10 @@ int Parser::gettok() {
     
     if (currentChar() == '(') {
         identifierValue = "";
-        currentTokenIndex++;
+        advance();
         while (isident(currentChar())) {
             identifierValue += currentChar();
-            currentTokenIndex++;
+            advance();
         }
         
         if (identifierValue == "def") {
@@ -64,7 +78,7 @@ int Parser::gettok() {
         } else {
             while (isident(currentChar())) {
                 identifierValue += currentChar();
-                currentTokenIndex++;
+                advance();
             }
             return FunCallTok;
         }
@@ -72,7 +86,7 @@ int Parser::gettok() {
     
     if (currentChar() == ';') {
         do {
-            currentTokenIndex++;
+            advance();
         } while (currentChar() != EOF && currentChar() != '\n' && currentChar() != '\r');
         
         if (currentChar() != EOF) return gettok();
@@ -83,7 +97,7 @@ int Parser::gettok() {
     }
 
     auto c = currentChar();
-    currentTokenIndex++;
+    advance();
     return c;
 }
 
@@ -123,7 +137,7 @@ shared_ptr<UserFunc> Parser::parseFunction() {
     auto exp = parseExpression();
     if (!exp) return errorFunc("Invalid expression in function body for " + name);
     seekToNextToken();
-    return make_shared<UserFunc>(name, args, move(exp));
+    return make_shared<UserFunc>(name, args, move(exp), currentLoc());
 }
 
 void Parser::parseLine(shared_ptr<Exp> &exp, shared_ptr<UserFunc> &func) {
@@ -153,11 +167,11 @@ shared_ptr<Exp> Parser::parseExpression() {
 }
 
 shared_ptr<Exp> Parser::parseNumExp() {
-    return make_shared<NumExp>(numericValue);
+    return make_shared<NumExp>(numericValue, currentLoc());
 }
 
 shared_ptr<Exp> Parser::parseVarLookup() {
-    return make_shared<VarExp>(identifierValue);
+    return make_shared<VarExp>(identifierValue, currentLoc());
 }
 
 shared_ptr<Exp> Parser::parseFunCall() {
@@ -172,11 +186,11 @@ shared_ptr<Exp> Parser::parseFunCall() {
         exps.push_back(move(exp));
         seekToNextToken();
     }
-    return make_shared<FunCallExp>(funcName, exps);
+    return make_shared<FunCallExp>(funcName, exps, currentLoc());
 }
 
 shared_ptr<Exp> Parser::error(string msg) {
-    cerr << msg << endl;
+    errors.push_back(msg);
     return nullptr;
 }
 
