@@ -26,10 +26,14 @@ std::string UserFunc::dump(std::string indent) {
     return s;
 }
 
-Value *UserFunc::codegen(IRGenerator &gen) {
+Function *UserFunc::codegenProto(IRGenerator &gen) {
     std::vector<Type *> types(arity(), Type::getInt64Ty(gen.module->getContext()));
     auto ftype = FunctionType::get(Type::getInt64Ty(gen.module->getContext()), types, false);
-    auto f = Function::Create(ftype, Function::ExternalLinkage, name, gen.module.get());
+    return Function::Create(ftype, Function::ExternalLinkage, name, gen.module.get());
+}
+
+Function *UserFunc::codegen(IRGenerator &gen) {
+    auto f = gen.module->getFunction(name) ?: codegenProto(gen);
     unsigned idx = 0;
     for (auto &arg: f->args()) {
         arg.setName(args[idx++]);

@@ -45,6 +45,11 @@ int main(int argc, const char * argv[]) {
         }
     } else {
         IRGenerator generator(filename, optim);
+        
+        // generate function prototypes so functions can reference undeclared functions
+        for (auto &func : funcs) {
+            func->codegenProto(generator);
+        }
         for (auto &func : funcs) {
             func->codegen(generator);
         }

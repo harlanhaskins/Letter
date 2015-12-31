@@ -33,7 +33,8 @@ public:
         this->name = name;
     }
     virtual std::string dump(std::string indent = "");
-    Value *codegen(IRGenerator &gen);
+    Function *codegen(IRGenerator &gen);
+    Function *codegenProto(IRGenerator &gen);
     virtual int arity();
 };
 
