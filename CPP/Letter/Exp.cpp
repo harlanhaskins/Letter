@@ -25,7 +25,7 @@ string VarExp::dump(string indent) {
 
 Value *VarExp::codegen(IRGenerator &gen) {
     // Look this variable up in the function.
-    Value *v = gen.lookupBinding(name);
+    AllocaInst *v = gen.lookupBinding(name);
     if (!v) {
         gen.recordError("Unknown variable name \"" + name + "\"");
         return nullptr;
@@ -54,7 +54,13 @@ Value *FunCallExp::codegen(IRGenerator &gen) {
             handleArityMismath(builtin->arity(), args.size());
             return nullptr;
         }
-        return builtin->codegenCall(args);
+        vector<Value *> vals;
+        for (auto &arg: args) {
+            auto v = arg->codegen(gen);
+            if (!v) return nullptr;
+            vals.push_back(v);
+        }
+        return builtin->codegenCall(vals);
     }
     Function *parent = gen.module->getFunction(func);
     if (!parent) {

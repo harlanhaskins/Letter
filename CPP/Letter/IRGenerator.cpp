@@ -27,41 +27,41 @@ Constant *globalStringPtr(Module *m, std::string value) {
 }
 
 void IRGenerator::genBuiltins() {
-    builtins["+"] = std::make_shared<BuiltinFunc>("+", 2, [this](std::vector<std::shared_ptr<Exp>> args){
-        return this->builder.CreateAdd(args[0]->codegen(*this), args[1]->codegen(*this), "addtmp");
+    builtins["+"] = std::make_shared<BuiltinFunc>("+", 2, [this](std::vector<Value *> args){
+        return this->builder.CreateAdd(args[0], args[1], "addtmp");
     });
-    builtins["*"] = std::make_shared<BuiltinFunc>("*", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return builder.CreateMul(args[0]->codegen(*this), args[1]->codegen(*this), "multmp");
+    builtins["*"] = std::make_shared<BuiltinFunc>("*", 2, [this](std::vector<Value *> args) {
+        return builder.CreateMul(args[0], args[1], "multmp");
     });
-    builtins["-"] = std::make_shared<BuiltinFunc>("-", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return builder.CreateSub(args[0]->codegen(*this), args[1]->codegen(*this), "subtmp");
+    builtins["-"] = std::make_shared<BuiltinFunc>("-", 2, [this](std::vector<Value *> args) {
+        return builder.CreateSub(args[0], args[1], "subtmp");
     });
-    builtins["/"] = std::make_shared<BuiltinFunc>("/", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return i64Cast(builder.CreateUDiv(args[0]->codegen(*this), args[1]->codegen(*this), "divtmp"));
+    builtins["/"] = std::make_shared<BuiltinFunc>("/", 2, [this](std::vector<Value *> args) {
+        return i64Cast(builder.CreateUDiv(args[0], args[1], "divtmp"));
     });
-    builtins["<"] = std::make_shared<BuiltinFunc>("<", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return i64Cast(builder.CreateICmpSLT(args[0]->codegen(*this), args[1]->codegen(*this), "lttmp"));
+    builtins["<"] = std::make_shared<BuiltinFunc>("<", 2, [this](std::vector<Value *> args) {
+        return i64Cast(builder.CreateICmpSLT(args[0], args[1], "lttmp"));
     });
-    builtins[">"] = std::make_shared<BuiltinFunc>(">", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return i64Cast(builder.CreateICmpSGT(args[0]->codegen(*this), args[1]->codegen(*this), "gttmp"));
+    builtins[">"] = std::make_shared<BuiltinFunc>(">", 2, [this](std::vector<Value *> args) {
+        return i64Cast(builder.CreateICmpSGT(args[0], args[1], "gttmp"));
     });
-    builtins[">="] = std::make_shared<BuiltinFunc>(">=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return i64Cast(builder.CreateICmpSGE(args[0]->codegen(*this), args[1]->codegen(*this), "getmp"));
+    builtins[">="] = std::make_shared<BuiltinFunc>(">=", 2, [this](std::vector<Value *> args) {
+        return i64Cast(builder.CreateICmpSGE(args[0], args[1], "getmp"));
     });
-    builtins["<="] = std::make_shared<BuiltinFunc>("<=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return i64Cast(builder.CreateICmpSLE(args[0]->codegen(*this), args[1]->codegen(*this), "letmp"));
+    builtins["<="] = std::make_shared<BuiltinFunc>("<=", 2, [this](std::vector<Value *> args) {
+        return i64Cast(builder.CreateICmpSLE(args[0], args[1], "letmp"));
     });
-    builtins["="] = std::make_shared<BuiltinFunc>("=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return i64Cast(builder.CreateICmpEQ(args[0]->codegen(*this), args[1]->codegen(*this), "eqtmp"));
+    builtins["="] = std::make_shared<BuiltinFunc>("=", 2, [this](std::vector<Value *> args) {
+        return i64Cast(builder.CreateICmpEQ(args[0], args[1], "eqtmp"));
     });
-    builtins["!="] = std::make_shared<BuiltinFunc>("=", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return i64Cast(builder.CreateICmpNE(args[0]->codegen(*this), args[1]->codegen(*this), "netmp"));
+    builtins["!="] = std::make_shared<BuiltinFunc>("=", 2, [this](std::vector<Value *> args) {
+        return i64Cast(builder.CreateICmpNE(args[0], args[1], "netmp"));
     });
-    builtins["mod"] = std::make_shared<BuiltinFunc>("mod", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        return i64Cast(builder.CreateURem(args[0]->codegen(*this), args[1]->codegen(*this), "modtmp"));
+    builtins["mod"] = std::make_shared<BuiltinFunc>("mod", 2, [this](std::vector<Value *> args) {
+        return i64Cast(builder.CreateURem(args[0], args[1], "modtmp"));
     });
-    builtins["if"] = std::make_shared<BuiltinFunc>("if", 3, [this](std::vector<std::shared_ptr<Exp>> args) {
-        auto cond = args[0]->codegen(*this);
+    builtins["if"] = std::make_shared<BuiltinFunc>("if", 3, [this](std::vector<Value *> args) {
+        auto cond = args[0];
         if (!cond) return (Value *)nullptr;
         auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(cond->getType()->getScalarSizeInBits(), 0)), "ifcond");
         auto f = builder.GetInsertBlock()->getParent();
@@ -71,7 +71,7 @@ void IRGenerator::genBuiltins() {
         builder.CreateCondBr(cmp, thenbb, elsebb);
         builder.SetInsertPoint(thenbb);
         
-        auto then = args[1]->codegen(*this);
+        auto then = args[1];
         if (!then) return (Value *)nullptr;
         builder.CreateBr(mergebb);
         thenbb = builder.GetInsertBlock();
@@ -79,7 +79,7 @@ void IRGenerator::genBuiltins() {
         f->getBasicBlockList().push_back(elsebb);
         builder.SetInsertPoint(elsebb);
         
-        auto elsev = args[2]->codegen(*this);
+        auto elsev = args[2];
         
         if (!elsev) return (Value *)nullptr;
         
@@ -97,7 +97,7 @@ void IRGenerator::genBuiltins() {
         return (Value *)phi;
     });
     
-    builtins["do"] = std::make_shared<BuiltinFunc>("do", -1, [this](std::vector<std::shared_ptr<Exp>> args) {
+    builtins["do"] = std::make_shared<BuiltinFunc>("do", -1, [this](std::vector<Value *> args) {
         auto parent = builder.GetInsertBlock()->getParent();
         if (!parent) {
             recordError("No parent for `do` block.");
@@ -110,21 +110,21 @@ void IRGenerator::genBuiltins() {
         builder.SetInsertPoint(bb);
         auto oldBindings = namedValues;
         for (int i = 0; i < args.size() - 1; i++) {
-            if (!args[i]->codegen(*this)) return (Value *)nullptr;
+            if (!args[i]) return (Value *)nullptr;
         }
         builder.CreateBr(doretbb);
         parent->getBasicBlockList().push_back(doretbb);
         bb = builder.GetInsertBlock();
         builder.SetInsertPoint(doretbb);
-        Value *ret = args.back()->codegen(*this);
+        Value *ret = args.back();
         if (!ret) return (Value *)nullptr;
         builder.CreateStore(ret, res);
         namedValues = oldBindings;
         return ret;
     });
     
-    builtins["let"] = std::make_shared<BuiltinFunc>("let", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
-        auto v = args[1]->codegen(*this);
+    builtins["let"] = std::make_shared<BuiltinFunc>("let", 2, [this](std::vector<Value *> args) {
+        auto v = args[1];
         if (!v) return (Value *)nullptr;
         
         VarExp *var = dynamic_cast<VarExp *>(&*args[0]);
@@ -143,7 +143,7 @@ void IRGenerator::genBuiltins() {
         return v;
     });
     
-    builtins["while"] = std::make_shared<BuiltinFunc>("while", 2, [this](std::vector<std::shared_ptr<Exp>> args) {
+    builtins["while"] = std::make_shared<BuiltinFunc>("while", 2, [this](std::vector<Value *> args) {
         auto f = builder.GetInsertBlock()->getParent();
         if (!f) {
             recordError("No parent for `while` loop.");
@@ -154,13 +154,13 @@ void IRGenerator::genBuiltins() {
         auto endbb = BasicBlock::Create(module->getContext(), "whileend");
         builder.CreateBr(whilebb);
         builder.SetInsertPoint(whilebb);
-        auto cond = args[0]->codegen(*this);
+        auto cond = args[0];
         auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(cond->getType()->getScalarSizeInBits(), 0)), "whilecond");
         builder.CreateCondBr(cmp, bodybb, endbb);
         f->getBasicBlockList().push_back(bodybb);
         whilebb = builder.GetInsertBlock();
         builder.SetInsertPoint(bodybb);
-        args[1]->codegen(*this);
+        args[1];
         builder.CreateBr(whilebb);
         f->getBasicBlockList().push_back(endbb);
         builder.SetInsertPoint(endbb);
