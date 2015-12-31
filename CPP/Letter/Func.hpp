@@ -41,14 +41,15 @@ class BuiltinFunc: public Func {
 private:
     int _arity;
 public:
-    std::function<Value *(std::vector<llvm::Value *> args)> codegenBlock;
-    BuiltinFunc(std::string name, int arity, std::function<Value *(std::vector<llvm::Value *> args)> codegenBlock) {
+    typedef std::vector<std::shared_ptr<Exp>> exp_v;
+    std::function<Value *(exp_v args)> codegenBlock;
+    BuiltinFunc(std::string name, int arity, std::function<Value *(exp_v args)> codegenBlock) {
         this->_arity = arity;
         this->name = name;
         this->codegenBlock = codegenBlock;
     }
     virtual std::string dump(std::string indent = "");
-    Value *codegenCall(std::vector<Value *> &args);
+    Value *codegenCall(exp_v &args);
     virtual int arity();
 };
 

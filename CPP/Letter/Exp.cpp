@@ -54,13 +54,7 @@ Value *FunCallExp::codegen(IRGenerator &gen) {
             handleArityMismath(builtin->arity(), args.size());
             return nullptr;
         }
-        vector<Value *> vals;
-        for (auto &arg: args) {
-            auto v = arg->codegen(gen);
-            if (!v) return nullptr;
-            vals.push_back(v);
-        }
-        return builtin->codegenCall(vals);
+        return builtin->codegenCall(args);
     }
     Function *parent = gen.module->getFunction(func);
     if (!parent) {

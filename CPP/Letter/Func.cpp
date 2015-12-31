@@ -60,6 +60,6 @@ int BuiltinFunc::arity() {
     return this->_arity;
 }
 
-Value *BuiltinFunc::codegenCall(std::vector<llvm::Value *> &args) {
+Value *BuiltinFunc::codegenCall(exp_v &args) {
     return codegenBlock(args);
 }
