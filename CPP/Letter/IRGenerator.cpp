@@ -37,6 +37,8 @@ Value *genBinary(IRGenerator &gen, BuiltinFunc::exp_v args, std::function<Value 
 }
 
 void IRGenerator::genBuiltins() {
+    
+    // create bindings for standard binary instructions, using their LLVM counterparts.
     builtins["+"] = std::make_shared<BuiltinFunc>("+", 2, [this](BuiltinFunc::exp_v args) {
         return genBinary(*this, args, [this](Value *v, Value *v1) {
             return builder.CreateAdd(v, v1, "addtmp");
@@ -92,85 +94,107 @@ void IRGenerator::genBuiltins() {
             return i64Cast(builder.CreateURem(v, v1, "modtmp"));
         });
     });
+    
+    // create builtins for language constructs (if, do, let, while)
+    
     builtins["if"] = std::make_shared<BuiltinFunc>("if", 3, [this](BuiltinFunc::exp_v args) {
+        
+        // emit the condition
         auto cond = args[0]->codegen(*this);
         if (!cond) return (Value *)nullptr;
-        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(cond->getType()->getScalarSizeInBits(), 0)), "ifcond");
+        
+        // compare the condition to 0
+        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(64, 0)), "ifcond");
+        
+        // get the current function
         auto f = builder.GetInsertBlock()->getParent();
+        
+        // basic blocks for each part of the 'if'.
         auto thenbb = BasicBlock::Create(module->getContext(), "then", f);
         auto elsebb = BasicBlock::Create(module->getContext(), "else");
         auto mergebb = BasicBlock::Create(module->getContext(), "ifcont");
+        
+        // conditionally go to 'then' or 'else'
         builder.CreateCondBr(cmp, thenbb, elsebb);
         builder.SetInsertPoint(thenbb);
         
+        // emit the 'then' case
         auto then = args[1]->codegen(*this);
         if (!then) return (Value *)nullptr;
+        
+        // break to 'ifcont'
         builder.CreateBr(mergebb);
         thenbb = builder.GetInsertBlock();
         
         f->getBasicBlockList().push_back(elsebb);
         builder.SetInsertPoint(elsebb);
         
+        // emit the 'else' case
         auto elsev = args[2]->codegen(*this);
-        
         if (!elsev) return (Value *)nullptr;
         
+        // break to 'ifcont'
         builder.CreateBr(mergebb);
         elsebb = builder.GetInsertBlock();
         
         // Emit merge block.
         f->getBasicBlockList().push_back(mergebb);
         builder.SetInsertPoint(mergebb);
-        PHINode *phi =
-        builder.CreatePHI(then->getType(), 2, "iftmp");
+        
+        // make phi node from either then or else.
+        PHINode *phi = builder.CreatePHI(then->getType(), 2, "iftmp");
         
         phi->addIncoming(then, thenbb);
         phi->addIncoming(elsev, elsebb);
+        
+        // return the phi node's value
         return (Value *)phi;
     });
     
     builtins["do"] = std::make_shared<BuiltinFunc>("do", -1, [this](BuiltinFunc::exp_v args) {
-        auto parent = builder.GetInsertBlock()->getParent();
-        if (!parent) {
-            recordError("No parent for `do` block.");
-            return (Value *)nullptr;
-        }
+        // create a stack variable to store the `do` result
         auto res = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), nullptr, "dores");
-        auto bb = BasicBlock::Create(module->getContext(), "do", parent);
-        auto doretbb = BasicBlock::Create(module->getContext(), "doret");
-        builder.CreateBr(bb);
-        builder.SetInsertPoint(bb);
+        
+        // save the old bindings
         auto oldBindings = namedValues;
+        
+        // emit the first n-1 args (they only really exist for side-effects)
         for (int i = 0; i < args.size() - 1; i++) {
             if (!args[i]->codegen(*this)) return (Value *)nullptr;
         }
-        builder.CreateBr(doretbb);
-        parent->getBasicBlockList().push_back(doretbb);
-        bb = builder.GetInsertBlock();
-        builder.SetInsertPoint(doretbb);
+        
+        // emit the last arg and store its value in the dores alloca.
         Value *ret = args.back()->codegen(*this);
         if (!ret) return (Value *)nullptr;
         builder.CreateStore(ret, res);
+        
+        // restore the old bindings.
         namedValues = oldBindings;
         return ret;
     });
     
     builtins["let"] = std::make_shared<BuiltinFunc>("let", 2, [this](BuiltinFunc::exp_v args) {
+        // force the first argument as a varexp
         VarExp *exp = dynamic_cast<VarExp *>(&*args[0]);
         if (!exp) {
             recordError("First argument to `let` must be a variable.");
             return (Value *)nullptr;
         }
+        
         auto name = exp->name;
         
+        // gen the binding
         auto v = args[1]->codegen(*this);
         if (!v) return (Value *)nullptr;
         
+        // either update or create a new binding
         AllocaInst *curr = namedValues[name];
         if (!curr) {
             curr = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), 0, name);
             namedValues[name] = curr;
         }
+        
+        // store the value in the binding address
         builder.CreateStore(v, curr);
         
         return (Value *)v;
@@ -178,25 +202,39 @@ void IRGenerator::genBuiltins() {
     
     builtins["while"] = std::make_shared<BuiltinFunc>("while", 2, [this](BuiltinFunc::exp_v args) {
         auto f = builder.GetInsertBlock()->getParent();
-        if (!f) {
-            recordError("No parent for `while` loop.");
-            return (Value *)nullptr;
-        }
+        
+        // basic blocks for the condition, body, and end of the loop
         auto whilebb = BasicBlock::Create(module->getContext(), "while", f);
         auto bodybb = BasicBlock::Create(module->getContext(), "whilebody");
         auto endbb = BasicBlock::Create(module->getContext(), "whileend");
+        
+        // break to the while loop
         builder.CreateBr(whilebb);
         builder.SetInsertPoint(whilebb);
+        
+        // emit condition
         auto cond = args[0]->codegen(*this);
-        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(cond->getType()->getScalarSizeInBits(), 0)), "whilecond");
+        auto cmp = builder.CreateICmpNE(cond, ConstantInt::get(module->getContext(), APInt(64, 0)), "whilecond");
+        
+        // conditionally break into the body or the end
         builder.CreateCondBr(cmp, bodybb, endbb);
+        
+        // add the body to the func
         f->getBasicBlockList().push_back(bodybb);
         whilebb = builder.GetInsertBlock();
+        
+        // emit the while body
         builder.SetInsertPoint(bodybb);
         args[1]->codegen(*this);
+        
+        // break back to the condition
         builder.CreateBr(whilebb);
+        
+        // emit the end
         f->getBasicBlockList().push_back(endbb);
         builder.SetInsertPoint(endbb);
+        
+        // return 0
         Value *v = ConstantInt::get(Type::getInt64Ty(module->getContext()), 0);
         return v;
     });
