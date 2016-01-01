@@ -385,7 +385,9 @@ void IRGenerator::createOptimizationPipeline() {
     llvm::PassManagerBuilder pmBuilder;
     pmBuilder.populateModulePassManager(*(this->modulePassManager));
     pmBuilder.populateFunctionPassManager(*(this->passManager));
+    
     pmBuilder.OptLevel = optimizationLevel;
+    
     this->passManager->add(createBasicAliasAnalysisPass());
     this->passManager->add(createInstructionCombiningPass());
     this->passManager->add(createReassociatePass());

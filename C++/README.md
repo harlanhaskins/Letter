@@ -31,9 +31,13 @@ The program will, by default, JIT and execute the entire file you provide it.
 
 ## Arguments
 
-* -emit-ast:
+* `-emit-ast`:
   * Emit the AST of the file to stdout
-* -emit-llvm:
+* `-emit-llvm`:
   * Emit the LLVM IR to stdout (useful for debugging)
-* -O
+* `-O[none, 1, 2, 3]`
   * Optimize the code prior to execution or printing.
+    * `none`: Perform no optimizations
+    * `1`: Perform trivial optimizations
+    * `2`: Perform slightly more advanced optimizations
+    * `3`: Perform ridiculous optimizations like function inilining all over
