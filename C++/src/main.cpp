@@ -20,7 +20,13 @@
 
 cl::opt<std::string> filename(cl::Positional, cl::desc("<input file>"), cl::Required);
 cl::opt<bool> emitAST("emit-ast", cl::desc("Emit the AST to stdout"));
-cl::opt<bool> optim("O", cl::desc("Optimize the code prior to execution"));
+cl::opt<OptimizationLevel> optimizationLevel(cl::desc("Choose optimization level:"),
+                                    cl::values(
+                                               clEnumVal(None , "No optimizations, enable debugging"),
+                                               clEnumVal(O1, "Enable trivial optimizations"),
+                                               clEnumVal(O2, "Enable default optimizations"),
+                                               clEnumVal(O3, "Enable expensive optimizations"),
+                                               clEnumValEnd));
 cl::opt<bool> emitIR("emit-llvm", cl::desc("Emit the generated LLVM IR to stdout"));
 
 int main(int argc, const char * argv[]) {
@@ -54,7 +60,7 @@ int main(int argc, const char * argv[]) {
             std::cout << exp->dump() << std::endl;
         }
     } else {
-        IRGenerator generator(filename, optim);
+        IRGenerator generator(filename, optimizationLevel);
         
         // generate function prototypes so functions can reference undeclared functions
         for (auto &func : funcs) {
@@ -64,6 +70,7 @@ int main(int argc, const char * argv[]) {
             func->codegen(generator);
         }
         generator.genMainFunc(exps);
+        generator.finish();
         if (!generator.errors.empty()) {
             for (auto &error: generator.errors) {
                 std::cerr << error << std::endl;

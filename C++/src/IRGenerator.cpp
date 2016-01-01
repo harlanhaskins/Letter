@@ -337,6 +337,12 @@ void IRGenerator::genBuiltins() {
     }
 }
 
+void IRGenerator::finish() {
+    if (optimizationLevel > none) {
+        this->modulePassManager->run(*this->module);
+    }
+}
+
 int64_t IRGenerator::execute() {
     jit->addModule(std::move(this->module));
     auto main_f = (int64_t (*)())jit->findSymbol("letter_main").getAddress();
@@ -372,6 +378,33 @@ llvm::Value *IRGenerator::genPrintf() {
     return f;
 }
 
+void IRGenerator::createOptimizationPipeline() {
+    // Set up the optimizer pipeline.
+    if (optimizationLevel == none) return;
+    
+    llvm::PassManagerBuilder pmBuilder;
+    pmBuilder.populateModulePassManager(*(this->modulePassManager));
+    pmBuilder.populateFunctionPassManager(*(this->passManager));
+    pmBuilder.OptLevel = optimizationLevel;
+    this->passManager->add(createBasicAliasAnalysisPass());
+    this->passManager->add(createInstructionCombiningPass());
+    this->passManager->add(createReassociatePass());
+    
+    if (optimizationLevel < O1) return;
+    
+    this->passManager->add(createGVNPass());
+    this->passManager->add(createCFGSimplificationPass());
+    this->passManager->add(createPromoteMemoryToRegisterPass());
+    
+    if (optimizationLevel < O2) return;
+    
+    this->passManager->add(createTailCallEliminationPass());
+    
+    if (optimizationLevel < O3) return;
+    
+    this->modulePassManager->add(createFunctionInliningPass());
+}
+
 void IRGenerator::recordError(std::string error, SourceItem &exp) {
     errors.push_back("[line " + std::to_string(exp.getLine()) + ", column " + std::to_string(exp.getColumn()) + "]: " + error);
 }
@@ -394,7 +427,9 @@ AllocaInst *IRGenerator::createEntryBlockAlloca(Function *f,
 
 void IRGenerator::addFunction(Function *function) {
     verifyFunction(*function);
-    passManager->run(*function);
+    if (optimizationLevel > none) {
+        passManager->run(*function);
+    }
 }
 
 llvm::Value *IRGenerator::genMainFunc(std::vector<std::shared_ptr<SourceItem>> exps) {
