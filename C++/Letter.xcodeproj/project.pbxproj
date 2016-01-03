@@ -12,6 +12,7 @@
 		DC1794B71C350AED00B9FAC4 /* IRGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC1794AF1C350AED00B9FAC4 /* IRGenerator.cpp */; };
 		DC1794B81C350AED00B9FAC4 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC1794B21C350AED00B9FAC4 /* main.cpp */; };
 		DC1794B91C350AED00B9FAC4 /* Parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC1794B31C350AED00B9FAC4 /* Parser.cpp */; };
+		DC76F2701C379218004D9EAF /* Driver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DC76F26E1C379218004D9EAF /* Driver.cpp */; };
 		DCCE95E71C3319CA00FA0513 /* libLLVM-3.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */; };
 		DCD0BEF01C30E7BC00C12405 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = DCD0BEEF1C30E7BC00C12405 /* libcurses.tbd */; };
 /* End PBXBuildFile section */
@@ -39,6 +40,8 @@
 		DC1794B21C350AED00B9FAC4 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = src/main.cpp; sourceTree = SOURCE_ROOT; };
 		DC1794B31C350AED00B9FAC4 /* Parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parser.cpp; path = src/Parser.cpp; sourceTree = SOURCE_ROOT; };
 		DC1794B41C350AED00B9FAC4 /* Parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Parser.hpp; path = src/Parser.hpp; sourceTree = SOURCE_ROOT; };
+		DC76F26E1C379218004D9EAF /* Driver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Driver.cpp; path = src/Driver.cpp; sourceTree = SOURCE_ROOT; };
+		DC76F26F1C379218004D9EAF /* Driver.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Driver.hpp; path = src/Driver.hpp; sourceTree = SOURCE_ROOT; };
 		DCAEDEBE1C2C582E00B5AB97 /* Letter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Letter; sourceTree = BUILT_PRODUCTS_DIR; };
 		DCCE95E61C3319CA00FA0513 /* libLLVM-3.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libLLVM-3.7.dylib"; path = "../../../../../../../usr/local/Cellar/llvm37/3.7.0/lib/llvm-3.7/lib/libLLVM-3.7.dylib"; sourceTree = "<group>"; };
 		DCD0BEEF1C30E7BC00C12405 /* libcurses.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurses.tbd; path = usr/lib/libcurses.tbd; sourceTree = SDKROOT; };
@@ -86,6 +89,8 @@
 				DC1794B01C350AED00B9FAC4 /* IRGenerator.hpp */,
 				DC1794B11C350AED00B9FAC4 /* LetterJIT.h */,
 				DC1794B21C350AED00B9FAC4 /* main.cpp */,
+				DC76F26E1C379218004D9EAF /* Driver.cpp */,
+				DC76F26F1C379218004D9EAF /* Driver.hpp */,
 				DC1794B31C350AED00B9FAC4 /* Parser.cpp */,
 				DC1794B41C350AED00B9FAC4 /* Parser.hpp */,
 			);
@@ -151,6 +156,7 @@
 				DC1794B51C350AED00B9FAC4 /* Exp.cpp in Sources */,
 				DC1794B71C350AED00B9FAC4 /* IRGenerator.cpp in Sources */,
 				DC1794B81C350AED00B9FAC4 /* main.cpp in Sources */,
+				DC76F2701C379218004D9EAF /* Driver.cpp in Sources */,
 				DC1794B91C350AED00B9FAC4 /* Parser.cpp in Sources */,
 				DC1794B61C350AED00B9FAC4 /* Func.cpp in Sources */,
 			);

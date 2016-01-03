@@ -13,8 +13,8 @@
 
 using namespace llvm;
 
-Constant *globalStringPtr(Module *m, std::string value) {
-    GlobalVariable* globalArray = new GlobalVariable(*m, ArrayType::get(Type::getInt8Ty(m->getContext()), value.size() + 1), true, GlobalValue::PrivateLinkage, 0, ".printfFormat");
+Constant *globalStringPtr(Module *m, std::string name, std::string value) {
+    GlobalVariable* globalArray = new GlobalVariable(*m, ArrayType::get(Type::getInt8Ty(m->getContext()), value.size() + 1), true, GlobalValue::PrivateLinkage, 0, name);
     globalArray->setAlignment(1);
     
     // Constant Definitions
@@ -304,10 +304,17 @@ void IRGenerator::genBuiltins() {
     });
 
     auto printf = genPrintf();
+    genPrint(/* newline: */ false, printf);
+    genPrint(/* newline: */ true, printf);
+}
+
+void IRGenerator::genPrint(bool newline, Value *printf) {
+    
+    std::string funcName = "print" + std::string(newline ? "ln" : "");
     
     std::vector<Type *> types { Type::getInt64Ty(module->getContext()) };
     auto printType = FunctionType::get(Type::getInt64Ty(module->getContext()), types, false);
-    auto func = Function::Create(printType, Function::PrivateLinkage, "print", module.get());
+    auto func = Function::Create(printType, Function::PrivateLinkage, funcName, module.get());
     namedValues.clear();
     
     Value *firstArg = nullptr;
@@ -316,7 +323,7 @@ void IRGenerator::genBuiltins() {
         firstArg = &arg;
     }
     
-    auto globalArray = globalStringPtr(module.get(), "%d\n");
+    auto globalArray = globalStringPtr(module.get(), funcName + "format", "%d" + std::string(newline ? "\n" : ""));
     
     Constant* zero = Constant::getNullValue(IntegerType::getInt64Ty(module->getContext()));
     
@@ -327,14 +334,11 @@ void IRGenerator::genBuiltins() {
     auto bb = BasicBlock::Create(module->getContext(), "entry", func);
     builder.SetInsertPoint(bb);
     
-    if (printf) {
-        std::vector<Value *> args { printfFormat, firstArg };
-        builder.CreateCall(printf, args, "calltmp");
-        builder.CreateRet(firstArg);
-        addFunction(func);
-    } else {
-        func->eraseFromParent();
-    }
+    std::vector<Value *> args { printfFormat, firstArg };
+    builder.CreateCall(printf, args, "calltmp");
+    builder.CreateRet(firstArg);
+    addFunction(func);
+
 }
 
 void IRGenerator::finish() {

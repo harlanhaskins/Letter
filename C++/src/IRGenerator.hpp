@@ -73,6 +73,7 @@ private:
     std::unique_ptr<legacy::PassManager> modulePassManager;
     void genBuiltins();
     void printBindings();
+    void genPrint(bool newline, llvm::Value *printf);
     void createOptimizationPipeline();
     llvm::Value *genPrintf();
     llvm::Value *error(std::string message);
