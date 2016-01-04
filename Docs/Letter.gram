@@ -1,9 +1,7 @@
-exp        ::= (<exp-body>)             ; A parenthesized expression
+fun-def    ::= (def <id> (<id>*) <exp>)  ; A function definition
+exp        ::= (<id> <exp>*)             ; A function call
              | <num>
              | <id>
-exp-body   ::= let <id> <exp>           ; A 'let' expression
-             | <id> <exp>*              ; A function call
-fun-def    ::= (def <id> (<id>*) <exp>)
 num        ::= 0-9
 alpha      ::= a-z | A-Z
 id         ::= <id-char>+

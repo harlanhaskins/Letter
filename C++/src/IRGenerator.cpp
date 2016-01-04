@@ -338,7 +338,6 @@ void IRGenerator::genPrint(bool newline, Value *printf) {
     builder.CreateCall(printf, args, "calltmp");
     builder.CreateRet(firstArg);
     addFunction(func);
-
 }
 
 void IRGenerator::finish() {
