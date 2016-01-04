@@ -209,7 +209,7 @@ void IRGenerator::genBuiltins() {
     
     builtins["do"] = std::make_shared<BuiltinFunc>("do", -1, [this](BuiltinFunc::source_item_v args) {
         // create a stack variable to store the `do` result
-        auto res = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), nullptr, "dores");
+        auto res = createEntryBlockAlloca(builder.GetInsertBlock()->getParent(), "dores");
         
         // save the old bindings
         auto oldBindings = namedValues;
@@ -254,7 +254,7 @@ void IRGenerator::genBuiltins() {
         // either update or create a new binding
         AllocaInst *curr = namedValues[name];
         if (!curr) {
-            curr = builder.CreateAlloca(Type::getInt64Ty(module->getContext()), 0, name);
+            curr = createEntryBlockAlloca(builder.GetInsertBlock()->getParent(), name);
             namedValues[name] = curr;
         }
         
